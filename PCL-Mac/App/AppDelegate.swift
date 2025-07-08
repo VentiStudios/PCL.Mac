@@ -67,7 +67,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if AppSettings.shared.showPclMacPopup {
             ContentView.setPopup(
                 PopupOverlay(
-                    "欢迎使用 PCL-Mac！",
+                    "不欢迎使用 PCL-Mac 宣传片版 :(",
                     "若要反馈问题，请到 QQ 群 1047463389，或直接在 GitHub 上开 Issue，而不是去 CE 群！",
                     [.init(text: "永久关闭") { AppSettings.shared.showPclMacPopup = false ; PopupButton.Close.onClick() }, .Ok]
                 )

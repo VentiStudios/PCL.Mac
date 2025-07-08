@@ -17,8 +17,21 @@ struct PCL_MacApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .background(WindowAccessor())
+            ZStack {
+                Spacer()
+                ContentView()
+                    .cornerRadius(10)
+                    .frame(width: 815, height: 465)
+                    .background(WindowAccessor())
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(
+                Image("Wallpaper")
+                    .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(maxWidth: .infinity)
+                        .clipped()
+            )
         }
         .commands {
             CommandGroup(replacing: .appInfo) {
@@ -37,7 +50,6 @@ struct PCL_MacApp: App {
             
             CommandGroup(replacing: .newItem) { } // 修复 #21
         }
-        .windowStyle(.hiddenTitleBar) // 避免刚启动时闪一下标题栏
     }
 }
 
@@ -46,10 +58,7 @@ struct WindowAccessor: NSViewRepresentable {
         let nsView = NSView()
         DispatchQueue.main.async {
             if let window = nsView.window {
-                window.setContentSize(NSSize(width: 815, height: 465))
-                window.isOpaque = false
-                window.backgroundColor = NSColor.clear
-                window.styleMask = [.borderless, .miniaturizable, .resizable]
+                window.toggleFullScreen(nil)
                 
                 if let contentView = window.contentView {
                     contentView.wantsLayer = true

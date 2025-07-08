@@ -70,6 +70,8 @@ struct TitleBarComponent: View {
                     .bold()
                 MyTagComponent(label: "Mac", backgroundColor: .white)
                     .foregroundStyle(AppSettings.shared.theme.getTextStyle())
+                MyTagComponent(label: "宣传片", backgroundColor: .green)
+                    .foregroundStyle(Color(hex: 0x000000, alpha: 0.8))
                 Spacer()
                 MenuItemButton(route: .launch, parent: self)
                 MenuItemButton(route: .download, parent: self)
