@@ -25,6 +25,7 @@ class DataManager: ObservableObject {
     @Published var downloadSpeed: Double = 0
     @Published var inprogressInstallTasks: InstallTasks?
     @Published var brightness: Double = 0
+    @Published var blurRadius: Double = 10
     
     private var routerCancellable: AnyCancellable?
     

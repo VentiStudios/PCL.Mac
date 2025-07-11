@@ -66,6 +66,7 @@ fileprivate struct RouteView<Content: View>: View {
                 }
             }
             .frame(width: 4, height: indicatorHeight)
+            .offset(x: 4)
             
             content(item, dataManager.router.getLast() == item)
                 .frame(height: 32)

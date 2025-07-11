@@ -25,7 +25,7 @@ public enum AppRoute: Hashable {
     case announcementHistory
     
     // MyList 导航
-    case minecraftDownload
+    case minecraftDownload(showDownloadPage: Bool)
     case modSearch
     
     case about

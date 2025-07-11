@@ -50,7 +50,7 @@ struct GenericTitleBarComponent<Content: View>: View {
                 .padding()
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: 47)
+        .frame(width: 816, height: 47)
         .background(
             AppSettings.shared.theme.getGradientView()
         )

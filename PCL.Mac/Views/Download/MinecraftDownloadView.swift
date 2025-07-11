@@ -62,7 +62,7 @@ struct MinecraftDownloadView: View {
     @ObservedObject private var dataManager: DataManager = .shared
     
     @State private var versions: [String: [VersionManifest.GameVersion]]? = nil
-    @State private var currentDownloadPage: DownloadPage?
+    @State var currentDownloadPage: DownloadPage?
     
     var body: some View {
         HStack {

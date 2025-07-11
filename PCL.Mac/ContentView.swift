@@ -15,6 +15,7 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             createViewFromRouter()
+                .frame(width: 815)
             if let tasks = dataManager.inprogressInstallTasks {
                 if case .installing = dataManager.router.getLast() {
                     EmptyView()

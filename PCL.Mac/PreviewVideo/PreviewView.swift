@@ -16,9 +16,10 @@ struct PreviewOverlay: View {
     @State private var showText3: Bool = false // 一款
     @State private var showText4: Bool = false // macOS 启动器
     @State private var showText5: Bool = false // HMCL 太卡？
-    @State private var showText6: Bool = false // LauncherX 不习惯？
+    @State private var showText6: Bool = false // LauncherX 用不习惯？
     @State private var showText7: Bool = false // PCL 不支持？
     @State private var showText8: Bool = false // 吗？
+    @State private var showText9: Bool = false // 官方版确实不支持，但 PCL-Community 社区制作了一些衍生版^
     
     init(secondsSinceStart: Binding<Double>) {
         self._secondsSinceStart = secondsSinceStart
@@ -33,57 +34,64 @@ struct PreviewOverlay: View {
                     Text("在寻找")
                         .opacity(showText2 ? 1 : 0)
                 }
-                .font(.system(size: 100))
+                .font(.system(size: 80))
                 HStack {
                     Text("一款")
                         .opacity(showText3 ? 1 : 0)
-                    Text("macOS 启动器")
+                    Text("macOS Minecraft 启动器")
                         .opacity(showText4 ? 1 : 0)
                         .foregroundStyle(Theme.colorful.getStyle())
                 }
-                .font(.system(size: 100))
+                .font(.system(size: 80))
             }
             if showText5 {
                 HStack(spacing: 20) {
                     Text("HMCL 太卡？")
                         .opacity(showText5 ? 1 : 0)
-                    Text("LauncherX 不习惯？")
+                    Text("LauncherX 用不习惯？")
                         .opacity(showText6 ? 1 : 0)
                 }
-                .font(.system(size: 60))
+                .font(.system(size: 40))
                 HStack {
-                    Text("PCL 不支持？")
+                    Text("PCL 不支持……")
                         .opacity(showText7 ? 1 : 0)
                     Text("吗？")
                         .opacity(showText8 ? 1 : 0)
+                        .font(.system(size: 80))
                         .foregroundStyle(.red)
                 }
-                .font(.system(size: 60))
+                .font(.system(size: 40))
             }
-            
-            Text("\(secondsSinceStart)")
-                .onChange(of: secondsSinceStart) { new in
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        if new <= 5 {
-                            if new >= 0.2 { showText1 = true }
-                            if new >= 0.5 { showText2 = true }
-                            if new >= 1.2 { showText3 = true }
-                            if new >= 1.9 { showText4 = true }
-                        } else {
-                            showText1 = false; showText2 = false; showText3 = false; showText4 = false
-                            if new >= 5.6 { showText5 = true }
-                            if new >= 6.5 { showText6 = true }
-                            if new >= 7.0 { showText7 = true }
-                            if new >= 9.0 {  showText8 = true }
-                        }
-                        
-                        if new >= 11 && new <= 11.1 {
-                            withAnimation(.linear(duration: 0.8)) {
-                                DataManager.shared.brightness = -1
-                            }
-                        }
+            if showText9 {
+                Text("官方版确实不支持，但 PCL-Community 社区制作了一些衍生版……")
+                    .opacity(showText9 ? 1 : 0)
+                    .font(.system(size: 20))
+            }
+        }
+        .onChange(of: secondsSinceStart) { new in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                if new <= 5 {
+                    if new >= 0.2 { showText1 = true }
+                    if new >= 0.5 { showText2 = true }
+                    if new >= 1.2 { showText3 = true }
+                    if new >= 1.9 { showText4 = true }
+                } else if new <= 11 {
+                    showText1 = false;
+                    if new >= 5.6 { showText5 = true }
+                    if new >= 6.5 { showText6 = true }
+                    if new >= 7.0 { showText7 = true }
+                    if new >= 8.5 { showText8 = true }
+                } else {
+                    showText5 = false;
+                    if new >= 10 { showText9 = true }
+                }
+                
+                if new >= 13 && new <= 13.1 {
+                    withAnimation(.linear(duration: 0.8)) {
+                        DataManager.shared.brightness = -1
                     }
                 }
+            }
         }
     }
 }
@@ -91,32 +99,29 @@ struct PreviewOverlay: View {
 struct PreviewView: View {
     @ObservedObject private var dataManager: DataManager = .shared
     @StateObject private var playerVM = AudioPlayerViewModel()
-    @State var secondsSinceStart: Double = 30
-    @State var showContentView: Bool = false
+    @State var secondsSinceStart: Double = -1
     
     var body: some View {
         ZStack {
             Spacer()
-            if secondsSinceStart >= 28 {
-                ContentView()
-                    .cornerRadius(10)
-                    .frame(width: 815, height: 465)
-                    .opacity(showContentView ? 1 : 0)
-            }
-            
-            if secondsSinceStart <= 12 {
+            if secondsSinceStart <= 14 {
                 PreviewOverlay(secondsSinceStart: $secondsSinceStart)
-            } else if secondsSinceStart <= 30 {
+                    .brightness(dataManager.brightness)
+            } else if secondsSinceStart <= 32 {
                 GitHubScene(secondsSinceStart: $secondsSinceStart)
+                    .brightness(dataManager.brightness)
             } else {
                 DemoScene(secondsSinceStart: $secondsSinceStart)
+                    .brightness(dataManager.brightness)
             }
             
-            if secondsSinceStart == 30 {
+            if secondsSinceStart == -1 {
                 Button("开始") {
-                    playerVM.play(url: URL(fileURLWithUserPath: "~/资源/creator.ogg"))
+                    secondsSinceStart = 0
                     Task {
-                        for _ in 1...300 {
+                        try await Task.sleep(for: .seconds(2))
+                        playerVM.play(url: URL(fileURLWithUserPath: "~/资源/creator.ogg"))
+                        for _ in 1...550 {
                             try await Task.sleep(for: .seconds(0.1))
                             DispatchQueue.main.async {
                                 self.secondsSinceStart += 0.1
@@ -134,15 +139,9 @@ struct PreviewView: View {
                 .aspectRatio(contentMode: .fill)
                 .frame(maxWidth: .infinity)
                 .clipped()
+                .blur(radius: dataManager.blurRadius)
+                .brightness(dataManager.brightness)
         )
-        .brightness(dataManager.brightness)
-        .onChange(of: secondsSinceStart) { new in
-            if new >= 2 {
-                withAnimation(.spring(duration: 0.5)) {
-                    self.showContentView = true
-                }
-            }
-        }
         .onDisappear {
             playerVM.pause()
         }

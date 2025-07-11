@@ -12,12 +12,13 @@ struct GitHubScene: View {
     
     @State private var images: [String] = ["PCL2-CE", "PCL.Nova.App", "PCL.Neo", "PCL2-Newer-Project", "PCL2-Python", "PCL.KMP"]
     @State private var appeared: Set<String> = []
-    @State private var text: String = "让我们来看看 PCL-Community 社区制作的 PCL 衍生版"
+    @State private var text: String = "让我们来看看这些衍生版"
     @State private var textOffset: CGFloat = -200
     @State private var textOpacity: Double = 0
     @State private var showVStack: Bool = true
     @State private var blackBackground: Bool = true
     @State private var rainbowText: Bool = false
+    @State private var showIcon: Bool = false
     
     init(secondsSinceStart: Binding<Double>) {
         self._secondsSinceStart = secondsSinceStart
@@ -32,9 +33,14 @@ struct GitHubScene: View {
                 .opacity(textOpacity)
                 .padding(.leading)
                 .frame(width: 500)
+            if showIcon {
+                Image("Icon")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 64)
+            }
             if showVStack {
                 VStack(spacing: 0) {
-                    Text("\(secondsSinceStart)")
                     ForEach(0..<images.count, id: \.self) { index in
                         let image = images[index]
                         Image(image)
@@ -69,25 +75,22 @@ struct GitHubScene: View {
             }
         }
         .onChange(of: secondsSinceStart) { new in
-            if new >= 15 && new <= 15.1 {
+            if new >= 17 && new <= 17.1 {
                 changeText("其中 PCL2-CE 不支持 macOS")
-                unlit("PCL2-CE")
+                unlit(["PCL2-CE"])
             }
             
-            if new >= 18 && new <= 18.1 {
+            if new >= 20 && new <= 20.1 {
                 changeText("PCL.KMP 和 PCL2-Python 几乎已停更")
-                unlit("PCL.KMP")
-                unlit("PCL2-Python")
+                unlit(["PCL.KMP", "PCL2-Python"])
             }
             
-            if new >= 21 && new <= 21.1 {
-                changeText("剩下的 3 个都在早期开发阶段\nNova 甚至做了个扫雷 + 2048（")
-                unlit("PCL.Nova.App")
-                unlit("PCL.Neo")
-                unlit("PCL2-Newer-Project")
+            if new >= 23 && new <= 23.1 {
+                changeText("剩下的 3 个都在早期开发阶段，无法使用\nNova 甚至做了个扫雷 + 2048（")
+                unlit(["PCL.Nova.App", "PCL.Neo", "PCL2-Newer-Project"])
             }
             
-            if new >= 24 && new <= 24.1 {
+            if new >= 27 && new <= 27.1 {
                 self.images.removeAll()
                 withAnimation(.spring(duration: 1)) {
                     showVStack = false
@@ -95,14 +98,21 @@ struct GitHubScene: View {
                 changeText("于是……")
             }
             
-            if new >= 26 && new <= 26.1 {
+            if new >= 29 && new <= 29.1 {
                 self.images.append("PCL.Mac")
                 withAnimation(.spring(duration: 1)) {
                     showVStack = true
+                    showIcon = true
                 }
                 changeText("PCL.Mac 诞生了！", rainbow: true)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    withAnimation(.spring(duration: 1)) {
+                        DataManager.shared.brightness = -1
+                    }
+                }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                     withAnimation(.spring(duration: 1)) {
+                        DataManager.shared.brightness = 0
                         showVStack = false
                         blackBackground = false
                     }
@@ -127,9 +137,14 @@ struct GitHubScene: View {
         }
     }
     
-    private func unlit(_ name: String) {
-        withAnimation(.spring(duration: 1)) {
-            _ = self.appeared.remove(name)
+    private func unlit(_ names: [String]) {
+        for i in 0..<names.count {
+            let name = names[i]
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5 + Double(i) * 0.2) {
+                withAnimation(.spring(duration: 1)) {
+                    _ = self.appeared.remove(name)
+                }
+            }
         }
     }
 }

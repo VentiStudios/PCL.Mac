@@ -13,8 +13,8 @@ struct DownloadView: View {
     var body: some View {
         Group {
             switch dataManager.router.getLast() {
-            case .minecraftDownload:
-                MinecraftDownloadView()
+            case .minecraftDownload(let showDownloadPage):
+                MinecraftDownloadView(currentDownloadPage: showDownloadPage ? .init(.init(displayName: "1.21.7"), {}) : nil)
             case .modSearch:
                 ModSearchView()
             default:
@@ -30,7 +30,7 @@ struct DownloadView: View {
                         .padding(.leading, 12)
                         .padding(.top, 20)
                         .padding(.bottom, 4)
-                    MyListComponent(default: .minecraftDownload, cases: [.minecraftDownload]) { type, isSelected in
+                    MyListComponent(default: .minecraftDownload(showDownloadPage: false), cases: [.minecraftDownload(showDownloadPage: false)]) { type, isSelected in
                         createListItemView(type)
                             .foregroundStyle(isSelected ? AnyShapeStyle(AppSettings.shared.theme.getTextStyle()) : AnyShapeStyle(Color("TextColor")))
                     }
