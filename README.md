@@ -1,11 +1,11 @@
-# PCL-Mac 🖥️
+# PCL.Mac 🖥️
 
 <div align="center">
   <img alt="Logo" src="/.github/assets/icon.png" width="256">
   
   [![QQ Group](https://img.shields.io/badge/QQ群-1047463389-blue)](https://jq.qq.com/?_wv=1027&k=5X6X9X8X)
   [![Platform](https://img.shields.io/badge/macOS-13.0+-blue)](https://developer.apple.com/macos/)
-  [![](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL-Mac)](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL-Mac&web=true)
+  [![](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL.Mac)](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL.Mac&web=true)
   
 </div>
 
@@ -18,7 +18,7 @@
 
 ## 下载
 
-因本项目还在早期开发阶段，所以没有 Release。你可以从 [Actions](https://github.com/PCL-Community/PCL-Mac/actions) 中下载早期开发版本。<br>
+因本项目还在早期开发阶段，所以没有 Release。你可以从 [Actions](https://github.com/PCL-Community/PCL.Mac/actions) 中下载早期开发版本。<br>
 > [!WARNING]
 > 因 App 未签名，所以你需要进入终端，然后输入：<br>
 > ```bash

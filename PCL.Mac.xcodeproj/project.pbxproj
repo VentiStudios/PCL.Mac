@@ -1,0 +1,838 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		EC01E7E82DDC3BEA006EF529 /* log4j2.xml in Resources */ = {isa = PBXBuildFile; fileRef = EC01E7E62DDC3BEA006EF529 /* log4j2.xml */; };
+		EC01E7E92DDC3BEA006EF529 /* log4j2-1.12-.xml in Resources */ = {isa = PBXBuildFile; fileRef = EC01E7E72DDC3BEA006EF529 /* log4j2-1.12-.xml */; };
+		EC23B6332DE5DC5B00CBEA9C /* PCL.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EC23B6322DE5DC5B00CBEA9C /* PCL.ttf */; };
+		EC422DAB2E2082D900FE8309 /* PCL_Mac_Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC422DA32E2082D900FE8309 /* PCL_Mac_Core.framework */; };
+		EC422DAD2E2082D900FE8309 /* PCL_Mac_Core.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = EC422DA32E2082D900FE8309 /* PCL_Mac_Core.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		EC9507372DFCF17700018EE0 /* SwiftyJSON in Frameworks */ = {isa = PBXBuildFile; productRef = EC9507362DFCF17700018EE0 /* SwiftyJSON */; };
+		EC9A7DCA2DE150170018815F /* glfw-patcher.jar in Resources */ = {isa = PBXBuildFile; fileRef = EC9A7DC82DE1500F0018815F /* glfw-patcher.jar */; };
+		ECA55A702E0415BE006499CC /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = ECA55A6F2E0415BE006499CC /* Alamofire */; };
+		ECDBF0CC2E1124C500E81482 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = ECDBF0CB2E1124C500E81482 /* ZIPFoundation */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		EC422DA92E2082D900FE8309 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EC9EAEC12DD85E48006CEDCC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EC422DA22E2082D900FE8309;
+			remoteInfo = PCL.Mac.Core;
+		};
+		ECA5D8E02DD99A4C006C58F7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EC9EAEC12DD85E48006CEDCC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EC9EAEC82DD85E48006CEDCC;
+			remoteInfo = "PCL-Mac";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		EC422DAC2E2082D900FE8309 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				EC422DAD2E2082D900FE8309 /* PCL_Mac_Core.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		EC01E7E62DDC3BEA006EF529 /* log4j2.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = log4j2.xml; sourceTree = "<group>"; };
+		EC01E7E72DDC3BEA006EF529 /* log4j2-1.12-.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "log4j2-1.12-.xml"; sourceTree = "<group>"; };
+		EC23B6322DE5DC5B00CBEA9C /* PCL.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = PCL.ttf; sourceTree = "<group>"; };
+		EC422DA32E2082D900FE8309 /* PCL_Mac_Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PCL_Mac_Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		EC9A7DC82DE1500F0018815F /* glfw-patcher.jar */ = {isa = PBXFileReference; lastKnownFileType = archive.jar; path = "glfw-patcher.jar"; sourceTree = "<group>"; };
+		EC9EAEC92DD85E48006CEDCC /* PCL.Mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PCL.Mac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EC9EF35A2E1E6CD7002EF8E0 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		ECA5D8DC2DD99A4C006C58F7 /* PCL.Mac.Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PCL.Mac.Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		EC422DB32E20830900FE8309 /* Exceptions for "PCL.Mac.Core" folder in "PCL.Mac" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Announcement/AnnouncementManager.swift,
+				Java/JavaSearch.swift,
+				Minecraft/AssetIndex.swift,
+				Minecraft/ClientManifest.swift,
+				Minecraft/Download/ArtifactVersionMapper.swift,
+				Minecraft/Download/ChunkedDownloader.swift,
+				Minecraft/Download/InstallTask.swift,
+				Minecraft/Download/MinecraftInstaller.swift,
+				Minecraft/Download/ProgressiveDownloader.swift,
+				Minecraft/Download/VersionManifest.swift,
+				Minecraft/Launch/MinecraftLauncher.swift,
+				Minecraft/Login/Account/AccountManager.swift,
+				Minecraft/Login/Account/MsAccount.swift,
+				Minecraft/Login/Account/OfflineAccount.swift,
+				Minecraft/Login/MsLogin.swift,
+				Minecraft/MinecraftDirectory.swift,
+				Minecraft/MinecraftInstance.swift,
+				Minecraft/MinecraftVersion.swift,
+				Minecraft/Mod/Loader/FabricManifest.swift,
+				Minecraft/Mod/Loader/ModLoaderInstaller.swift,
+				Minecraft/Mod/Loader/NeoforgeInstallProfile.swift,
+				Minecraft/Mod/Loader/NeoforgeManifest.swift,
+				Minecraft/Mod/Mod.swift,
+				Minecraft/Mod/ModInstaller.swift,
+				Storage/AccessTokenStorage.swift,
+				Storage/CacheStorage.swift,
+				Theme/ThemeDownloader.swift,
+				Utils/Util.swift,
+			);
+			target = EC9EAEC82DD85E48006CEDCC /* PCL.Mac */;
+		};
+		EC422DB42E20830900FE8309 /* Exceptions for "PCL.Mac.Core" folder in "PCL.Mac.Core" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Announcement/AnnouncementManager.swift,
+				Java/JavaSearch.swift,
+				Minecraft/AssetIndex.swift,
+				Minecraft/ClientManifest.swift,
+				Minecraft/Download/ArtifactVersionMapper.swift,
+				Minecraft/Download/ChunkedDownloader.swift,
+				Minecraft/Download/InstallTask.swift,
+				Minecraft/Download/MinecraftInstaller.swift,
+				Minecraft/Download/ProgressiveDownloader.swift,
+				Minecraft/Download/VersionManifest.swift,
+				Minecraft/Launch/MinecraftLauncher.swift,
+				Minecraft/Login/Account/AccountManager.swift,
+				Minecraft/Login/Account/MsAccount.swift,
+				Minecraft/Login/Account/OfflineAccount.swift,
+				Minecraft/Login/MsLogin.swift,
+				Minecraft/MinecraftDirectory.swift,
+				Minecraft/MinecraftInstance.swift,
+				Minecraft/MinecraftVersion.swift,
+				Minecraft/Mod/Loader/FabricManifest.swift,
+				Minecraft/Mod/Loader/ModLoaderInstaller.swift,
+				Minecraft/Mod/Loader/NeoforgeInstallProfile.swift,
+				Minecraft/Mod/Loader/NeoforgeManifest.swift,
+				Minecraft/Mod/Mod.swift,
+				Minecraft/Mod/ModInstaller.swift,
+				Storage/AccessTokenStorage.swift,
+				Storage/CacheStorage.swift,
+				Theme/ThemeDownloader.swift,
+				Utils/Util.swift,
+			);
+			publicHeaders = (
+				PCL_Mac_Core.h,
+			);
+			target = EC422DA22E2082D900FE8309 /* PCL.Mac.Core */;
+		};
+		ECD256602DDBE69800A0F233 /* Exceptions for "PCL.Mac" folder in "PCL.Mac" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = EC9EAEC82DD85E48006CEDCC /* PCL.Mac */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		EC422DB72E2083EC00FE8309 /* Exceptions for "PCL.Mac.Core" folder in "Compile Sources" phase from "PCL.Mac.Core" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = EC422D9F2E2082D900FE8309 /* Sources */;
+			membershipExceptions = (
+				PCL_Mac_Core.h,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		EC422DA42E2082D900FE8309 /* PCL.Mac.Core */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				EC422DB32E20830900FE8309 /* Exceptions for "PCL.Mac.Core" folder in "PCL.Mac" target */,
+				EC422DB42E20830900FE8309 /* Exceptions for "PCL.Mac.Core" folder in "PCL.Mac.Core" target */,
+				EC422DB72E2083EC00FE8309 /* Exceptions for "PCL.Mac.Core" folder in "Compile Sources" phase from "PCL.Mac.Core" target */,
+			);
+			path = PCL.Mac.Core;
+			sourceTree = "<group>";
+		};
+		EC9EAECB2DD85E48006CEDCC /* PCL.Mac */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				ECD256602DDBE69800A0F233 /* Exceptions for "PCL.Mac" folder in "PCL.Mac" target */,
+			);
+			path = PCL.Mac;
+			sourceTree = "<group>";
+		};
+		ECA5D8DD2DD99A4C006C58F7 /* PCL.Mac.Tests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PCL.Mac.Tests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		EC422DA02E2082D900FE8309 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EC9EAEC62DD85E48006CEDCC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ECA55A702E0415BE006499CC /* Alamofire in Frameworks */,
+				EC422DAB2E2082D900FE8309 /* PCL_Mac_Core.framework in Frameworks */,
+				EC9507372DFCF17700018EE0 /* SwiftyJSON in Frameworks */,
+				ECDBF0CC2E1124C500E81482 /* ZIPFoundation in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ECA5D8D92DD99A4C006C58F7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		EC01E7E52DDC3BD2006EF529 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				EC23B6322DE5DC5B00CBEA9C /* PCL.ttf */,
+				EC9A7DC82DE1500F0018815F /* glfw-patcher.jar */,
+				EC01E7E62DDC3BEA006EF529 /* log4j2.xml */,
+				EC01E7E72DDC3BEA006EF529 /* log4j2-1.12-.xml */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		EC84E73F2DDD56E500524871 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		EC9EAEC02DD85E48006CEDCC = {
+			isa = PBXGroup;
+			children = (
+				EC01E7E52DDC3BD2006EF529 /* Resources */,
+				EC9EAECB2DD85E48006CEDCC /* PCL.Mac */,
+				ECA5D8DD2DD99A4C006C58F7 /* PCL.Mac.Tests */,
+				EC422DA42E2082D900FE8309 /* PCL.Mac.Core */,
+				EC84E73F2DDD56E500524871 /* Frameworks */,
+				EC9EAECA2DD85E48006CEDCC /* Products */,
+				EC9EF35A2E1E6CD7002EF8E0 /* Secrets.xcconfig */,
+			);
+			sourceTree = "<group>";
+		};
+		EC9EAECA2DD85E48006CEDCC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				EC9EAEC92DD85E48006CEDCC /* PCL.Mac.app */,
+				ECA5D8DC2DD99A4C006C58F7 /* PCL.Mac.Tests.xctest */,
+				EC422DA32E2082D900FE8309 /* PCL_Mac_Core.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		EC422D9E2E2082D900FE8309 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		EC422DA22E2082D900FE8309 /* PCL.Mac.Core */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EC422DB02E2082D900FE8309 /* Build configuration list for PBXNativeTarget "PCL.Mac.Core" */;
+			buildPhases = (
+				EC422D9E2E2082D900FE8309 /* Headers */,
+				EC422D9F2E2082D900FE8309 /* Sources */,
+				EC422DA02E2082D900FE8309 /* Frameworks */,
+				EC422DA12E2082D900FE8309 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				EC422DA42E2082D900FE8309 /* PCL.Mac.Core */,
+			);
+			name = PCL.Mac.Core;
+			packageProductDependencies = (
+			);
+			productName = PCL.Mac.Core;
+			productReference = EC422DA32E2082D900FE8309 /* PCL_Mac_Core.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		EC9EAEC82DD85E48006CEDCC /* PCL.Mac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EC9EAED82DD85E49006CEDCC /* Build configuration list for PBXNativeTarget "PCL.Mac" */;
+			buildPhases = (
+				EC9EAEC52DD85E48006CEDCC /* Sources */,
+				EC9EAEC62DD85E48006CEDCC /* Frameworks */,
+				EC9EAEC72DD85E48006CEDCC /* Resources */,
+				EC422DAC2E2082D900FE8309 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EC422DAA2E2082D900FE8309 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				EC9EAECB2DD85E48006CEDCC /* PCL.Mac */,
+			);
+			name = PCL.Mac;
+			packageProductDependencies = (
+				EC9507362DFCF17700018EE0 /* SwiftyJSON */,
+				ECA55A6F2E0415BE006499CC /* Alamofire */,
+				ECDBF0CB2E1124C500E81482 /* ZIPFoundation */,
+			);
+			productName = "PCL-Mac";
+			productReference = EC9EAEC92DD85E48006CEDCC /* PCL.Mac.app */;
+			productType = "com.apple.product-type.application";
+		};
+		ECA5D8DB2DD99A4C006C58F7 /* PCL.Mac.Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ECA5D8E22DD99A4C006C58F7 /* Build configuration list for PBXNativeTarget "PCL.Mac.Tests" */;
+			buildPhases = (
+				ECA5D8D82DD99A4C006C58F7 /* Sources */,
+				ECA5D8D92DD99A4C006C58F7 /* Frameworks */,
+				ECA5D8DA2DD99A4C006C58F7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				ECA5D8E12DD99A4C006C58F7 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				ECA5D8DD2DD99A4C006C58F7 /* PCL.Mac.Tests */,
+			);
+			name = PCL.Mac.Tests;
+			packageProductDependencies = (
+			);
+			productName = "PCL-MacTests";
+			productReference = ECA5D8DC2DD99A4C006C58F7 /* PCL.Mac.Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		EC9EAEC12DD85E48006CEDCC /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					EC422DA22E2082D900FE8309 = {
+						CreatedOnToolsVersion = 16.2;
+						LastSwiftMigration = 1620;
+					};
+					EC9EAEC82DD85E48006CEDCC = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					ECA5D8DB2DD99A4C006C58F7 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = EC9EAEC82DD85E48006CEDCC;
+					};
+				};
+			};
+			buildConfigurationList = EC9EAEC42DD85E48006CEDCC /* Build configuration list for PBXProject "PCL.Mac" */;
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = EC9EAEC02DD85E48006CEDCC;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				EC9507352DFCF17700018EE0 /* XCRemoteSwiftPackageReference "SwiftyJSON" */,
+				ECA55A6E2E0415BE006499CC /* XCRemoteSwiftPackageReference "Alamofire" */,
+				ECDBF0CA2E1124C500E81482 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = EC9EAECA2DD85E48006CEDCC /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				EC9EAEC82DD85E48006CEDCC /* PCL.Mac */,
+				ECA5D8DB2DD99A4C006C58F7 /* PCL.Mac.Tests */,
+				EC422DA22E2082D900FE8309 /* PCL.Mac.Core */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		EC422DA12E2082D900FE8309 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EC9EAEC72DD85E48006CEDCC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EC9A7DCA2DE150170018815F /* glfw-patcher.jar in Resources */,
+				EC01E7E82DDC3BEA006EF529 /* log4j2.xml in Resources */,
+				EC23B6332DE5DC5B00CBEA9C /* PCL.ttf in Resources */,
+				EC01E7E92DDC3BEA006EF529 /* log4j2-1.12-.xml in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ECA5D8DA2DD99A4C006C58F7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		EC422D9F2E2082D900FE8309 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EC9EAEC52DD85E48006CEDCC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ECA5D8D82DD99A4C006C58F7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		EC422DAA2E2082D900FE8309 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EC422DA22E2082D900FE8309 /* PCL.Mac.Core */;
+			targetProxy = EC422DA92E2082D900FE8309 /* PBXContainerItemProxy */;
+		};
+		ECA5D8E12DD99A4C006C58F7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EC9EAEC82DD85E48006CEDCC /* PCL.Mac */;
+			targetProxy = ECA5D8E02DD99A4C006C58F7 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		EC422DAE2E2082D900FE8309 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.github.pcl-community.PCL-Mac-Core";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		EC422DAF2E2082D900FE8309 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.github.pcl-community.PCL-Mac-Core";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		EC9EAED62DD85E49006CEDCC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = EC9EF35A2E1E6CD7002EF8E0 /* Secrets.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		EC9EAED72DD85E49006CEDCC /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = EC9EF35A2E1E6CD7002EF8E0 /* Secrets.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		EC9EAED92DD85E49006CEDCC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = EC9EF35A2E1E6CD7002EF8E0 /* Secrets.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = PCL.Mac/PCL_Mac.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"PCL.Mac/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PCL.Mac/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PCL.Mac;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "io.github.pcl-communtiy.PCL-Mac";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		EC9EAEDA2DD85E49006CEDCC /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = EC9EF35A2E1E6CD7002EF8E0 /* Secrets.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = PCL.Mac/PCL_Mac.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"PCL.Mac/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PCL.Mac/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PCL.Mac;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "io.github.pcl-communtiy.PCL-Mac";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		ECA5D8E32DD99A4C006C58F7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "io.github.pcl-communtiy.PCL.Mac.Tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PCL.Mac.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PCL.Mac";
+			};
+			name = Debug;
+		};
+		ECA5D8E42DD99A4C006C58F7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "io.github.pcl-communtiy.PCL.Mac.Tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PCL.Mac.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PCL.Mac";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		EC422DB02E2082D900FE8309 /* Build configuration list for PBXNativeTarget "PCL.Mac.Core" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EC422DAE2E2082D900FE8309 /* Debug */,
+				EC422DAF2E2082D900FE8309 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		EC9EAEC42DD85E48006CEDCC /* Build configuration list for PBXProject "PCL.Mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EC9EAED62DD85E49006CEDCC /* Debug */,
+				EC9EAED72DD85E49006CEDCC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		EC9EAED82DD85E49006CEDCC /* Build configuration list for PBXNativeTarget "PCL.Mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EC9EAED92DD85E49006CEDCC /* Debug */,
+				EC9EAEDA2DD85E49006CEDCC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		ECA5D8E22DD99A4C006C58F7 /* Build configuration list for PBXNativeTarget "PCL.Mac.Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ECA5D8E32DD99A4C006C58F7 /* Debug */,
+				ECA5D8E42DD99A4C006C58F7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		EC9507352DFCF17700018EE0 /* XCRemoteSwiftPackageReference "SwiftyJSON" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftyJSON/SwiftyJSON";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.2;
+			};
+		};
+		ECA55A6E2E0415BE006499CC /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.10.2;
+			};
+		};
+		ECDBF0CA2E1124C500E81482 /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/weichsel/ZIPFoundation";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.19;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		EC9507362DFCF17700018EE0 /* SwiftyJSON */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC9507352DFCF17700018EE0 /* XCRemoteSwiftPackageReference "SwiftyJSON" */;
+			productName = SwiftyJSON;
+		};
+		ECA55A6F2E0415BE006499CC /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ECA55A6E2E0415BE006499CC /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		ECDBF0CB2E1124C500E81482 /* ZIPFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ECDBF0CA2E1124C500E81482 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
+			productName = ZIPFoundation;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = EC9EAEC12DD85E48006CEDCC /* Project object */;
+}
