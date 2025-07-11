@@ -132,6 +132,20 @@
 			);
 			target = EC422DA22E2082D900FE8309 /* PCL.Mac.Core */;
 		};
+		EC9928612E20D404002EF913 /* Exceptions for "PCL.Mac.Tests" folder in "PCL.Mac.Tests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				PCLMacTests.swift,
+			);
+			target = ECA5D8DB2DD99A4C006C58F7 /* PCL.Mac.Tests */;
+		};
+		EC9928622E20D404002EF913 /* Exceptions for "PCL.Mac.Tests" folder in "PCL.Mac.Core" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				PCLMacTests.swift,
+			);
+			target = EC422DA22E2082D900FE8309 /* PCL.Mac.Core */;
+		};
 		ECD256602DDBE69800A0F233 /* Exceptions for "PCL.Mac" folder in "PCL.Mac" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -162,17 +176,21 @@
 			path = PCL.Mac.Core;
 			sourceTree = "<group>";
 		};
+		EC99285F2E20D404002EF913 /* PCL.Mac.Tests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				EC9928612E20D404002EF913 /* Exceptions for "PCL.Mac.Tests" folder in "PCL.Mac.Tests" target */,
+				EC9928622E20D404002EF913 /* Exceptions for "PCL.Mac.Tests" folder in "PCL.Mac.Core" target */,
+			);
+			path = PCL.Mac.Tests;
+			sourceTree = "<group>";
+		};
 		EC9EAECB2DD85E48006CEDCC /* PCL.Mac */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				ECD256602DDBE69800A0F233 /* Exceptions for "PCL.Mac" folder in "PCL.Mac" target */,
 			);
 			path = PCL.Mac;
-			sourceTree = "<group>";
-		};
-		ECA5D8DD2DD99A4C006C58F7 /* PCL.Mac.Tests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = PCL.Mac.Tests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -229,11 +247,11 @@
 			children = (
 				EC01E7E52DDC3BD2006EF529 /* Resources */,
 				EC9EAECB2DD85E48006CEDCC /* PCL.Mac */,
-				ECA5D8DD2DD99A4C006C58F7 /* PCL.Mac.Tests */,
 				EC422DA42E2082D900FE8309 /* PCL.Mac.Core */,
 				EC84E73F2DDD56E500524871 /* Frameworks */,
 				EC9EAECA2DD85E48006CEDCC /* Products */,
 				EC9EF35A2E1E6CD7002EF8E0 /* Secrets.xcconfig */,
+				EC99285F2E20D404002EF913 /* PCL.Mac.Tests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -275,6 +293,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				EC422DA42E2082D900FE8309 /* PCL.Mac.Core */,
+				EC99285F2E20D404002EF913 /* PCL.Mac.Tests */,
 			);
 			name = PCL.Mac.Core;
 			packageProductDependencies = (
@@ -322,9 +341,6 @@
 			);
 			dependencies = (
 				ECA5D8E12DD99A4C006C58F7 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				ECA5D8DD2DD99A4C006C58F7 /* PCL.Mac.Tests */,
 			);
 			name = PCL.Mac.Tests;
 			packageProductDependencies = (

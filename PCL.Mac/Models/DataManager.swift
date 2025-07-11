@@ -24,6 +24,7 @@ class DataManager: ObservableObject {
     @Published var leftTabId: UUID = .init()
     @Published var downloadSpeed: Double = 0
     @Published var inprogressInstallTasks: InstallTasks?
+    @Published var brightness: Double = 0
     
     private var routerCancellable: AnyCancellable?
     
