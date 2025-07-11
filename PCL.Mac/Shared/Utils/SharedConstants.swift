@@ -30,8 +30,8 @@ public struct SharedConstants {
         self.dateFormatter.dateFormat = "yyyy/MM/dd HH:mm"
         self.dateFormatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
         
-        self.isDevelopment = (Bundle.main.object(forInfoDictionaryKey: "IS_DEVELOPMENT") as! String) == "false" ? false : true
+        self.isDevelopment = false
         let branch = Bundle.main.object(forInfoDictionaryKey: "BRANCH") as! String
-        self.branch = branch.isEmpty ? "本地构建" : branch
+        self.branch = branch.isEmpty ? "宣传片" : branch
     }
 }

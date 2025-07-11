@@ -17,21 +17,7 @@ struct PCL_MacApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ZStack {
-                Spacer()
-                ContentView()
-                    .cornerRadius(10)
-                    .frame(width: 815, height: 465)
-                    .background(WindowAccessor())
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(
-                Image("Wallpaper")
-                    .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(maxWidth: .infinity)
-                        .clipped()
-            )
+            PreviewView()
         }
         .commands {
             CommandGroup(replacing: .appInfo) {
@@ -59,12 +45,6 @@ struct WindowAccessor: NSViewRepresentable {
         DispatchQueue.main.async {
             if let window = nsView.window {
                 window.toggleFullScreen(nil)
-                
-                if let contentView = window.contentView {
-                    contentView.wantsLayer = true
-                    contentView.layer?.cornerRadius = 10
-                    contentView.layer?.masksToBounds = true
-                }
             }
         }
         return nsView
