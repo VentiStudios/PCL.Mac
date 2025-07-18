@@ -92,7 +92,7 @@ public class AppSettings: ObservableObject {
             
             // 判断 defaultInstance 是否合法
             if let defaultInstance = defaultInstance,
-               MinecraftInstance.create(runningDirectory: directory.versionsUrl.appending(path: defaultInstance)) == nil {
+               MinecraftInstance.create(directory, directory.versionsUrl.appending(path: defaultInstance)) == nil {
                 warn("无效的 defaultInstance 配置")
                 self.defaultInstance = nil
             }

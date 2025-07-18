@@ -15,7 +15,7 @@ struct JavaComponent: View {
     private var javaPath: URL? {
         guard let directory = AppSettings.shared.currentMinecraftDirectory,
               let defaultInstance = AppSettings.shared.defaultInstance,
-              let instance = MinecraftInstance.create(runningDirectory: directory.versionsUrl.appending(path: defaultInstance)) else {
+              let instance = MinecraftInstance.create(directory, directory.versionsUrl.appending(path: defaultInstance)) else {
             return nil
         }
         
@@ -26,7 +26,7 @@ struct JavaComponent: View {
         self.jvm = jvm
         guard let directory = AppSettings.shared.currentMinecraftDirectory,
               let defaultInstance = AppSettings.shared.defaultInstance,
-              let instance = MinecraftInstance.create(runningDirectory: directory.versionsUrl.appending(path: defaultInstance)) else {
+              let instance = MinecraftInstance.create(directory, directory.versionsUrl.appending(path: defaultInstance)) else {
             return
         }
         self.instance = instance

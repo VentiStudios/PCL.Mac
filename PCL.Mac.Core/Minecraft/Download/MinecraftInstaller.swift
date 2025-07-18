@@ -276,9 +276,9 @@ public class MinecraftInstaller {
         }
         
         // 初始化实例
-        let instance = MinecraftInstance.create(runningDirectory: task.versionUrl, config: MinecraftConfig(name: task.name, mainClass: task.manifest!.mainClass))
+        let instance = MinecraftInstance.create(.init(rootUrl: task.versionUrl.parent().parent(), name: ""), task.versionUrl, config: MinecraftConfig(name: task.name))
         if let _ = DataManager.shared.inprogressInstallTasks?.tasks["fabric"] {
-            instance?.config.clientBrand = .fabric
+            instance?.clientBrand = .fabric
         }
         instance?.saveConfig()
         

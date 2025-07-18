@@ -56,7 +56,7 @@ public class MinecraftDirectory: Codable, Identifiable, Hashable {
                     (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
                 }
                 for folderUrl in folderUrls {
-                    if let version = MinecraftInstance.create(runningDirectory: folderUrl) {
+                    if let version = MinecraftInstance.create(self, folderUrl) {
                         DispatchQueue.main.async {
                             self.instances.append(version)
                         }
