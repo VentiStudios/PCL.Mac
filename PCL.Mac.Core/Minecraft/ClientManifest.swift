@@ -94,6 +94,9 @@ public class ClientManifest {
         public init(json: JSON) {
             name = json["name"].stringValue
             split = name.split(separator: ":").map(String.init)
+            if split.isEmpty {
+                
+            }
             groupId = split[0]
             artifactId = split[1]
             version = split[2]

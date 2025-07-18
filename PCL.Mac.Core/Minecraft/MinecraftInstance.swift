@@ -71,15 +71,15 @@ public class MinecraftInstance: Identifiable, Equatable, Hashable {
             self.clientBrand = MinecraftInstance.getClientBrand(String(data: data, encoding: .utf8) ?? "")
             let json = try JSON(data: data)
             
-            if json["inheritsFrom"].exists() {
-                switch self.clientBrand {
-                case .fabric:
+            switch self.clientBrand {
+            case .fabric:
+                if json["loader"].exists() {
                     manifest = ClientManifest.createFromFabricManifest(.init(json), runningDirectory)
-                default:
-                    warn("发现不受支持的加载器: \(self.config.name) \(self.clientBrand.rawValue)")
+                } else {
                     manifest = try ClientManifest.parse(data, instanceUrl: runningDirectory)
                 }
-            } else {
+            default:
+                // warn("发现不受支持的加载器: \(self.config.name) \(self.clientBrand.rawValue)")
                 manifest = try ClientManifest.parse(data, instanceUrl: runningDirectory)
             }
             ArtifactVersionMapper.map(manifest)
