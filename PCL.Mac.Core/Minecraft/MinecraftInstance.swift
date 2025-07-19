@@ -178,7 +178,10 @@ public class MinecraftInstance: Identifiable, Equatable, Hashable {
             return
         }
         
-        launchOptions.account = account
+        launchOptions.playerName = account.name
+        launchOptions.uuid = account.uuid
+        log("正在登录")
+        launchOptions.accessToken = await account.getAccessToken()
         launchOptions.javaPath = javaUrl
         
         if !config.skipResourcesCheck && !launchOptions.skipResourceCheck {
