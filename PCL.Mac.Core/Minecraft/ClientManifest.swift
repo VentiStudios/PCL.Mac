@@ -309,7 +309,7 @@ public class ClientManifest {
             guard let manifest = try ClientManifest.parse(data, instanceUrl: instanceUrl) else { return nil }
             parent = manifest
         } catch {
-            err("无法解析 inheritsFrom: \(error)")
+            err("无法解析 inheritsFrom: \(error.localizedDescription)")
             return manifest
         }
         
@@ -336,7 +336,7 @@ public class ClientManifest {
                 guard let manifest = try ClientManifest.parse(data, instanceUrl: instanceUrl) else { return nil }
                 parent = manifest
             } catch {
-                err("无法解析 inheritsFrom: \(error)")
+                err("无法解析 inheritsFrom: \(error.localizedDescription)")
                 break checkParent
             }
             

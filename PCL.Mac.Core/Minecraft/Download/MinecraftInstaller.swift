@@ -287,7 +287,7 @@ public class MinecraftInstaller {
                 process.waitUntilExit()
                 log("已修改 lwjgl-glfw")
             } catch {
-                err("无法修改 lwjgl-glfw: \(error)")
+                err("无法修改 lwjgl-glfw: \(error.localizedDescription)")
             }
         }
     }

@@ -118,7 +118,7 @@ public class ModLoaderInstaller {
                 let handle = try FileHandle(forReadingFrom: temp.appending(path: "install_profile.json"))
                 profile = try NeoforgeInstallProfile(.init(data: try handle.readToEnd()!))
             } catch {
-                err("无法解析 install_profile.json: \(error)")
+                err("无法解析 install_profile.json: \(error.localizedDescription)")
                 return
             }
             

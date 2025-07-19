@@ -229,7 +229,7 @@ public class MinecraftInstance: Identifiable, Equatable, Hashable {
             self.manifest = manifest
             ArtifactVersionMapper.map(self.manifest)
         } catch {
-            err("无法加载客户端清单: \(error)")
+            err("无法加载客户端清单: \(error.localizedDescription)")
             return false
         }
         
