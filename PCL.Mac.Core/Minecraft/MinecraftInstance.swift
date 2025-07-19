@@ -22,9 +22,9 @@ public class MinecraftInstance: Identifiable, Equatable, Hashable {
     public let configPath: URL
     public private(set) var version: MinecraftVersion! = nil
     public var process: Process?
-    public let manifest: ClientManifest
-    public var config: MinecraftConfig
-    public var clientBrand: ClientBrand
+    public private(set) var manifest: ClientManifest!
+    public var config: MinecraftConfig!
+    public var clientBrand: ClientBrand!
     
     public let id: UUID = UUID()
     
@@ -40,56 +40,37 @@ public class MinecraftInstance: Identifiable, Equatable, Hashable {
         if let cached = cache[runningDirectory] {
             return cached
         }
-        if let instance: MinecraftInstance = .init(minecraftDirectory: minecraftDirectory, runningDirectory: runningDirectory, config: config) {
+        
+        let instance: MinecraftInstance = .init(minecraftDirectory: minecraftDirectory, runningDirectory: runningDirectory, config: config)
+        if instance.setup() {
             cache[runningDirectory] = instance
             return instance
+        } else {
+            err("实例初始化失败")
+            return nil
         }
-        return nil
     }
     
-    private init?(minecraftDirectory: MinecraftDirectory, runningDirectory: URL, config: MinecraftConfig? = nil) {
+    private init(minecraftDirectory: MinecraftDirectory, runningDirectory: URL, config: MinecraftConfig? = nil) {
         self.runningDirectory = runningDirectory
         self.minecraftDirectory = minecraftDirectory
         self.configPath = runningDirectory.appending(path: ".PCL_Mac.json")
-        
+        self.config = config
+    }
+    
+    private func setup() -> Bool {
         // 若配置文件存在，从文件加载配置
         if FileManager.default.fileExists(atPath: configPath.path) {
             do {
-                self.config = .init(try .init(data: try FileHandle(forReadingFrom: configPath).readToEnd()!))
+                try loadConfig()
             } catch {
                 err("无法加载配置: \(error.localizedDescription)")
                 debug(configPath.path)
-                return nil
             }
-        } else {
-            self.config = config ?? MinecraftConfig(name: runningDirectory.lastPathComponent)
         }
+        self.config = config ?? MinecraftConfig(name: runningDirectory.lastPathComponent)
         
-        // 加载客户端清单
-        do {
-            let data = try FileHandle(forReadingFrom: runningDirectory.appending(path: runningDirectory.lastPathComponent + ".json")).readToEnd()!
-            self.clientBrand = MinecraftInstance.getClientBrand(String(data: data, encoding: .utf8) ?? "")
-            let json = try JSON(data: data)
-            let manifest: ClientManifest?
-            switch self.clientBrand {
-            case .fabric:
-                if json["loader"].exists() {
-                    manifest = ClientManifest.createFromFabricManifest(.init(json), runningDirectory)
-                } else {
-                    manifest = try ClientManifest.parse(data, instanceUrl: runningDirectory)
-                }
-            default:
-                // warn("发现不受支持的加载器: \(self.config.name) \(self.clientBrand.rawValue)")
-                manifest = try ClientManifest.parse(data, instanceUrl: runningDirectory)
-            }
-            guard let manifest = manifest else { return nil }
-            self.manifest = manifest
-            ArtifactVersionMapper.map(self.manifest)
-        } catch {
-            err("无法加载客户端清单: \(error)")
-            return nil
-        }
-        
+        if !loadManifest() { return false }
         detectVersion()
         
         // 寻找可用 Java
@@ -97,6 +78,11 @@ public class MinecraftInstance: Identifiable, Equatable, Hashable {
             self.config.javaPath = MinecraftInstance.findSuitableJava(self.version!)?.executableUrl.path
         }
         self.saveConfig()
+        return true
+    }
+    
+    public func loadConfig() throws {
+        self.config = .init(try .init(data: try FileHandle(forReadingFrom: configPath).readToEnd()!))
     }
     
     public func saveConfig() {
@@ -222,26 +208,58 @@ public class MinecraftInstance: Identifiable, Equatable, Hashable {
         }
     }
     
-    public func detectVersion() {
+    private func loadManifest() -> Bool {
+        do {
+            let data = try FileHandle(forReadingFrom: runningDirectory.appending(path: runningDirectory.lastPathComponent + ".json")).readToEnd()!
+            self.clientBrand = MinecraftInstance.getClientBrand(String(data: data, encoding: .utf8) ?? "")
+            let json = try JSON(data: data)
+            let manifest: ClientManifest?
+            switch self.clientBrand {
+            case .fabric:
+                if json["loader"].exists() {
+                    manifest = ClientManifest.createFromFabricManifest(.init(json), runningDirectory)
+                } else {
+                    manifest = try ClientManifest.parse(data, instanceUrl: runningDirectory)
+                }
+            default:
+                // warn("发现不受支持的加载器: \(self.config.name) \(self.clientBrand.rawValue)")
+                manifest = try ClientManifest.parse(data, instanceUrl: runningDirectory)
+            }
+            guard let manifest = manifest else { return false }
+            self.manifest = manifest
+            ArtifactVersionMapper.map(self.manifest)
+        } catch {
+            err("无法加载客户端清单: \(error)")
+            return false
+        }
+        
+        return true
+    }
+    
+    private func detectVersion() {
         guard version == nil else {
             return
         }
-        
-        do {
-            let archive = try Archive(url: runningDirectory.appending(path: "\(config.name).jar"), accessMode: .read)
-            guard let entry = archive["version.json"] else {
-                throw NSError(domain: "MinecraftInstance", code: 2, userInfo: [NSLocalizedDescriptionKey: "version.json 不存在"])
+        version = MinecraftVersion(displayName: manifest.id)
+        Task {
+            do {
+                let archive = try Archive(url: runningDirectory.appending(path: "\(config.name).jar"), accessMode: .read)
+                guard let entry = archive["version.json"] else {
+                    return
+                }
+                
+                var data = Data()
+                _ = try archive.extract(entry, consumer: { (chunk) in
+                    data.append(chunk)
+                })
+                
+                let version = MinecraftVersion(displayName: try JSON(data: data)["id"].stringValue)
+                DispatchQueue.main.async {
+                    self.version = version
+                }
+            } catch {
+                err("无法检测版本: \(error.localizedDescription)，正在使用清单版本")
             }
-            
-            var data = Data()
-            _ = try archive.extract(entry, consumer: { (chunk) in
-                data.append(chunk)
-            })
-            
-            version = MinecraftVersion(displayName: try JSON(data: data)["id"].stringValue)
-        } catch {
-            err("无法检测版本: \(error.localizedDescription)，正在使用清单版本")
-            version = MinecraftVersion(displayName: manifest.id)
         }
     }
     
