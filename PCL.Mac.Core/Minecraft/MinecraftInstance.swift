@@ -70,7 +70,7 @@ public class MinecraftInstance: Identifiable, Equatable, Hashable {
             let data = try FileHandle(forReadingFrom: runningDirectory.appending(path: runningDirectory.lastPathComponent + ".json")).readToEnd()!
             self.clientBrand = MinecraftInstance.getClientBrand(String(data: data, encoding: .utf8) ?? "")
             let json = try JSON(data: data)
-            
+            let manifest: ClientManifest?
             switch self.clientBrand {
             case .fabric:
                 if json["loader"].exists() {
@@ -82,7 +82,9 @@ public class MinecraftInstance: Identifiable, Equatable, Hashable {
                 // warn("发现不受支持的加载器: \(self.config.name) \(self.clientBrand.rawValue)")
                 manifest = try ClientManifest.parse(data, instanceUrl: runningDirectory)
             }
-            ArtifactVersionMapper.map(manifest)
+            guard let manifest = manifest else { return nil }
+            self.manifest = manifest
+            ArtifactVersionMapper.map(self.manifest)
         } catch {
             err("无法加载客户端清单: \(error)")
             return nil
