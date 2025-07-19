@@ -38,7 +38,7 @@ public struct Response {
         return data
     }
     
-    public func getJSONOrThow() throws -> JSON {
+    public func getJSONOrThrow() throws -> JSON {
         return try JSON(data: getDataOrThrow())
     }
 }

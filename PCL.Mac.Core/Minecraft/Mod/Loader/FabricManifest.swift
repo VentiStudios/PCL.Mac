@@ -53,6 +53,6 @@ public class FabricManifest: Identifiable {
     }
     
     public static func parse(_ data: Data) throws -> [FabricManifest] {
-        return try JSON(data: data).arrayValue.map(FabricManifest.init).map { $0! }
+        return try JSON(data: data).arrayValue.compactMap(FabricManifest.init)
     }
 }

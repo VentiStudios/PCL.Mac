@@ -47,7 +47,7 @@ public class MsLogin {
                 "scope": "XboxLive.signin offline_access"
             ],
             encodeMethod: .urlEncoded
-        ).getJSONOrThow()
+        ).getJSONOrThrow()
         let authResponse = DeviceAuthResponse(json)
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(authResponse.userCode, forType: .string)
@@ -87,7 +87,7 @@ public class MsLogin {
                     "device_code": deviceAuthResponse.deviceCode
                 ],
                 encodeMethod: .urlEncoded
-            ).getJSONOrThow()
+            ).getJSONOrThrow()
             if let accessToken = json["access_token"].string,
                let refreshToken = json["refresh_token"].string {
                 return .init(accessToken: accessToken, refreshToken: refreshToken)
@@ -109,7 +109,7 @@ public class MsLogin {
                 "scope": "XboxLive.signin offline_access"
             ],
             encodeMethod: .urlEncoded
-        ).getJSONOrThow()
+        ).getJSONOrThrow()
         if let accessToken = json["access_token"].string,
            let refreshToken = json["refresh_token"].string {
             return .init(accessToken: accessToken, refreshToken: refreshToken)
@@ -136,7 +136,7 @@ public class MsLogin {
                 "TokenType": "JWT"
             ],
             encodeMethod: .json
-        ).getJSONOrThow()
+        ).getJSONOrThrow()
         if let token = json["Token"].string,
            let uhs = json["DisplayClaims"]["xui"].array?.first?["uhs"].string {
             let json = try await Requests.post(
@@ -152,7 +152,7 @@ public class MsLogin {
                     "TokenType": "JWT"
                 ],
                 encodeMethod: .json
-            ).getJSONOrThow()
+            ).getJSONOrThrow()
             if let token = json["Token"].string {
                 let json = try await Requests.post(
                     "https://api.minecraftservices.com/authentication/login_with_xbox",
@@ -160,7 +160,7 @@ public class MsLogin {
                         "identityToken": "XBL3.0 x=\(uhs);\(token)"
                     ],
                     encodeMethod: .json
-                ).getJSONOrThow()
+                ).getJSONOrThrow()
                 if let accessToken = json["access_token"].string {
                     if let id = id {
                         AccessTokenStorage.shared.add(id: id, accessToken: accessToken, expiriesIn: json["expires_in"].intValue)
@@ -187,7 +187,7 @@ public class MsLogin {
             headers: [
                 "Authorization": "Bearer \(accessToken)"
             ]
-        ).getJSONOrThow()
+        ).getJSONOrThrow()
         
         return json["items"].arrayValue.contains(where: { $0["name"].stringValue == "product_minecraft" })
     }
