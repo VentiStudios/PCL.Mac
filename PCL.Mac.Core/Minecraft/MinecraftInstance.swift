@@ -147,28 +147,13 @@ public class MinecraftInstance: Identifiable, Equatable, Hashable {
     }
     
     public func launch(_ launchOptions: LaunchOptions) async {
-        if config.maxMemory == 0 {
-            await ContentView.setPopup(.init("错误", "就给 0MB 内存你打算咋跑啊！\n请在 版本设置 > 设置 中调整游戏内存配置", [.Ok]))
-            return
+        if let account = launchOptions.account {
+            launchOptions.playerName = account.name
+            launchOptions.uuid = account.uuid
+            log("正在登录")
+            launchOptions.accessToken = await account.getAccessToken()
         }
-        
-        guard let account = AccountManager.shared.getAccount() else {
-            err("无法启动 Minecraft: 未设置账号")
-            await ContentView.setPopup(PopupOverlay("错误", "请先创建一个账号并选择再启动游戏！", [.Ok], .error))
-            return
-        }
-        
-        guard let javaPath = config.javaPath, let javaUrl = Optional(URL(fileURLWithPath: javaPath)) else {
-            err("无法启动 Minecraft: 未找到 Java")
-            await ContentView.setPopup(PopupOverlay("错误", "找不到可用的 Java，请确保你已经安装了符合要求的 Java 版本！", [.Ok], .error))
-            return
-        }
-        
-        launchOptions.playerName = account.name
-        launchOptions.uuid = account.uuid
-        log("正在登录")
-        launchOptions.accessToken = await account.getAccessToken()
-        launchOptions.javaPath = javaUrl
+        launchOptions.javaPath = URL(fileURLWithPath: config.javaPath)
         
         if !config.skipResourcesCheck && !launchOptions.skipResourceCheck {
             log("正在进行资源完整性检查")

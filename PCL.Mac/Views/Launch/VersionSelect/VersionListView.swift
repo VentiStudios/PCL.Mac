@@ -53,16 +53,35 @@ struct VersionListView: View {
         }
     }
     var body: some View {
-        ScrollView(.vertical) {
-            VStack {
-                let notVanillaVersions = minecraftDirectory.instances.filter { $0.clientBrand != .vanilla }
-                if !notVanillaVersions.isEmpty {
-                    MyCardComponent(title: "可安装 Mod") {
+        VStack {
+            if minecraftDirectory.instances.isEmpty {
+                Text("加载中……")
+                    .foregroundStyle(Color("TextColor"))
+                    .font(.custom("PCL English", size: 14))
+            } else {
+                ScrollView {
+                    let notVanillaVersions = minecraftDirectory.instances.filter { $0.clientBrand != .vanilla }
+                    if !notVanillaVersions.isEmpty {
+                        MyCardComponent(title: "可安装 Mod") {
+                            LazyVStack {
+                                ForEach(
+                                    notVanillaVersions
+                                        .sorted(by: { $0.version! > $1.version! })
+                                        .sorted(by: { $0.clientBrand.index < $1.clientBrand.index })
+                                ) { instance in
+                                    VersionView(instance: instance)
+                                }
+                            }
+                            .padding(.top, 12)
+                        }
+                        .padding()
+                    }
+                    MyCardComponent(title: "常规版本") {
                         LazyVStack {
                             ForEach(
-                                notVanillaVersions
+                                minecraftDirectory.instances
+                                    .filter { $0.clientBrand == .vanilla }
                                     .sorted(by: { $0.version! > $1.version! })
-                                    .sorted(by: { $0.clientBrand.index < $1.clientBrand.index })
                             ) { instance in
                                 VersionView(instance: instance)
                             }
@@ -70,24 +89,11 @@ struct VersionListView: View {
                         .padding(.top, 12)
                     }
                     .padding()
+                    .padding(.bottom, 25)
                 }
-                MyCardComponent(title: "常规版本") {
-                    LazyVStack {
-                        ForEach(
-                            minecraftDirectory.instances
-                                .filter { $0.clientBrand == .vanilla }
-                                .sorted(by: { $0.version! > $1.version! })
-                        ) { instance in
-                            VersionView(instance: instance)
-                        }
-                    }
-                    .padding(.top, 12)
-                }
-                .padding()
-                .padding(.bottom, 25)
+                .scrollIndicators(.never)
             }
         }
-        .scrollIndicators(.never)
         .id(minecraftDirectory)
         .onChange(of: minecraftDirectory, perform: loadInstances)
         .onAppear { loadInstances(minecraftDirectory) }

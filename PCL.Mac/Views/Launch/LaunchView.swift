@@ -13,77 +13,78 @@ fileprivate struct LeftTab: View {
     
     @State private var instance: MinecraftInstance?
     
+    private var accountView: some View {
+        MyListItemComponent {
+            VStack {
+                if let account = accountManager.getAccount() {
+                    MinecraftAvatarComponent(type: .username, src: account.name)
+                    Text(account.name)
+                        .font(.custom("PCL English", size: 16))
+                        .foregroundStyle(Color("TextColor"))
+                } else {
+                    Image("Missingno")
+                        .interpolation(.none)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 58)
+                        .padding(6)
+                    Text("无账号")
+                        .font(.custom("PCL English", size: 16))
+                        .foregroundStyle(Color("TextColor"))
+                }
+                Text("点击头像进入账号管理")
+                    .font(.custom("PCL English", size: 10))
+                    .foregroundStyle(Color(hex: 0x8C8C8C))
+                    .padding(.top, 2)
+            }
+            .padding(4)
+        }
+        .onTapGesture {
+            dataManager.router.append(.accountManagement)
+        }
+    }
+    
     var body: some View {
         VStack {
             Spacer()
-            MyListItemComponent {
-                VStack {
-                    if let account = accountManager.getAccount() {
-                        MinecraftAvatarComponent(type: .username, src: account.name)
-                        Text(account.name)
-                            .font(.custom("PCL English", size: 16))
-                            .foregroundStyle(Color("TextColor"))
-                    } else {
-                        Image("Missingno")
-                            .interpolation(.none)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 58)
-                            .padding(6)
-                        Text("无账号")
-                            .font(.custom("PCL English", size: 16))
-                            .foregroundStyle(Color("TextColor"))
-                    }
-                    Text("点击头像进入账号管理")
-                        .font(.custom("PCL English", size: 10))
-                        .foregroundStyle(Color(hex: 0x8C8C8C))
-                        .padding(.top, 2)
-                }
-                .padding(4)
-            }
-            .onTapGesture {
-                dataManager.router.append(.accountManagement)
-            }
-            
+            accountView
             Spacer()
-            VStack {
-                if let instance = self.instance {
-                    MyButtonComponent(text: "启动游戏", descriptionText: instance.config.name, foregroundStyle: AppSettings.shared.theme.getTextStyle()) {
-                        let launchOptions: LaunchOptions = .init()
-                        
-                        guard launchPrecheck(launchOptions) else { return }
-                        Task {
-                            debug("正在启动游戏")
-                            await instance.launch(launchOptions)
-                        }
-                    }
-                    .frame(height: 55)
-                    .padding()
-                    .padding(.bottom, -27)
-                } else {
-                    MyButtonComponent(text: "下载游戏", descriptionText: "未找到可用的游戏版本") {
-                        dataManager.router.setRoot(.download)
-                    }
-                    .frame(height: 55)
-                    .padding()
-                    .padding(.bottom, -27)
-                }
-                HStack(spacing: 12) {
-                    MyButtonComponent(text: "版本选择") {
-                        dataManager.router.append(.versionSelect)
-                    }
-                    if AppSettings.shared.defaultInstance != nil {
-                        MyButtonComponent(text: "版本设置") {
-                            if let instance = self.instance {
-                                dataManager.router.append(.versionSettings(instance: instance))
-                            }
-                        }
+            if let instance = self.instance {
+                MyButtonComponent(text: "启动游戏", descriptionText: instance.config.name, foregroundStyle: AppSettings.shared.theme.getTextStyle()) {
+                    let launchOptions: LaunchOptions = .init()
+                    
+                    guard launchPrecheck(launchOptions) else { return }
+                    Task {
+                        debug("正在启动游戏")
+                        await instance.launch(launchOptions)
                     }
                 }
-                .frame(height: 32)
+                .frame(height: 55)
                 .padding()
-                .padding(.bottom, 4)
+                .padding(.bottom, -27)
+            } else {
+                MyButtonComponent(text: "下载游戏", descriptionText: "未找到可用的游戏版本") {
+                    dataManager.router.setRoot(.download)
+                }
+                .frame(height: 55)
+                .padding()
+                .padding(.bottom, -27)
             }
+            HStack(spacing: 12) {
+                MyButtonComponent(text: "版本选择") {
+                    dataManager.router.append(.versionSelect)
+                }
+                if AppSettings.shared.defaultInstance != nil {
+                    MyButtonComponent(text: "版本设置") {
+                        if let instance = self.instance {
+                            dataManager.router.append(.versionSettings(instance: instance))
+                        }
+                    }
+                }
+            }
+            .frame(height: 32)
+            .padding()
+            .padding(.bottom, 4)
         }
         .frame(width: 300)
         .foregroundStyle(Color(hex: 0x343D4A))
@@ -97,69 +98,50 @@ fileprivate struct LeftTab: View {
     }
     
     private func launchPrecheck(_ launchOptions: LaunchOptions) -> Bool {
-        if instance!.process != nil {
-            warn("[launchPrecheck] 有进程正在运行，终止启动")
-            return false
-        }
-        log("[launchPrecheck] 正在进行 Java 检查")
-        if DataManager.shared.javaVirtualMachines
-            .filter({ $0.executableUrl.path != "/usr/bin/java" })
-            .count == 0 {
-            err("[launchPrecheck] 用户未安装 Java")
-            ContentView.setPopup(.init(
-                "错误",
-                "你还没有安装 Java\n如果你安装过 Java 并且没有在 Java 管理中看到，请点击“手动添加 Java”",
-                [
-                    .init(text: "安装 Java", onClick: { NSWorkspace.shared.open(URL(string: "https://www.azul.com/downloads/?package=jdk#zulu")!) ; PopupButton.Close.onClick() }),
-                    .Close
-                ]))
-            return false
-        } else if MinecraftInstance.findSuitableJava(instance!.version) == nil {
-            let minVersion = MinecraftInstance.getMinJavaVersion(instance!.version)
-            err("[launchPrecheck] 无可用 Java。最低版本: \(minVersion)")
-            ContentView.setPopup(.init(
-                "错误",
-                "当前没有满足条件的 Java 版本\n你需要安装 \(minVersion) 及以上版本的 Java！",
-                [
-                    .init(text: "安装 Java", onClick: { NSWorkspace.shared.open(URL(string: "https://www.azul.com/downloads/?package=jdk#zulu")!) ; PopupButton.Close.onClick() }),
-                    .Close
-                ]))
-            return false
-        }
-        
-        if !AppSettings.shared.hasMicrosoftAccount {
-            debug("[launchPrecheck] 未登录过正版账号")
-            var returnValue: Bool = false
-            if Locale.current.identifier.starts(with: "zh") {
-                switch AppSettings.shared.launchCount {
-                case 3, 8, 15, 30, 50, 70, 90, 110, 130, 180, 220, 280, 330, 380, 450, 550, 660, 750, 880, 950, 1100, 1300, 1500, 1700, 1900:
+        var returnValue: Bool = false
+        switch LaunchPrecheck.check(instance!, launchOptions) {
+        case .success():
+            returnValue = true
+        case .failure(let error):
+            switch error {
+            case .invalidMemoryConfiguration:
+                ContentView.setPopup(.init("错误", "就给 0MB 内存你打算咋跑啊！\n请在 版本设置 > 设置 中调整游戏内存配置", [.Ok]))
+            case .missingAccount:
+                ContentView.setPopup(PopupOverlay("错误", "请先创建一个账号并选择再启动游戏！", [.Ok], .error))
+            case .javaNotFound:
+                ContentView.setPopup(.init("错误", "你还没有安装 Java\n如果你安装过 Java 并且没有在 Java 管理中看到，请点击“手动添加 Java”", [.init(text: "安装 Java", onClick: { NSWorkspace.shared.open(URL(string: "https://www.azul.com/downloads/?package=jdk#zulu")!) ; PopupButton.Close.onClick() }), .Close]))
+            case .noUsableJava(let minVersion):
+                ContentView.setPopup(.init("错误", "当前没有满足条件的 Java 版本\n你需要安装 \(minVersion) 及以上版本的 Java！", [.init(text: "安装 Java", onClick: { NSWorkspace.shared.open(URL(string: "https://www.azul.com/downloads/?package=jdk#zulu")!) ; PopupButton.Close.onClick() }), .Close]))
+            case .noMicrosoftAccount:
+                if Locale.current.identifier.starts(with: "zh") {
+                    switch AppSettings.shared.launchCount {
+                    case 3, 8, 15, 30, 50, 70, 90, 110, 130, 180, 220, 280, 330, 380, 450, 550, 660, 750, 880, 950, 1100, 1300, 1500, 1700, 1900:
+                        ContentView.setPopup(.init(
+                            "考虑一下正版？",
+                            "你已经启动了 \(AppSettings.shared.launchCount) 次 Minecraft 啦！\n如果觉得 Minecraft 还不错，可以购买正版支持一下，毕竟开发游戏也真的很不容易……不要一直白嫖啦。\n在登录一次正版账号后，就不会再出现这个提示了！",
+                            [
+                                .init(text: "支持正版游戏！", onClick: { NSWorkspace.shared.open(URL(string: "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")!) ; PopupButton.Close.onClick() }),
+                                .init(text: "下次一定", onClick: { PopupButton.Close.onClick() ; returnValue = true })
+                            ]))
+                    default:
+                        returnValue = true
+                    }
+                } else {
                     ContentView.setPopup(.init(
-                        "考虑一下正版？",
-                        "你已经启动了 \(AppSettings.shared.launchCount) 次 Minecraft 啦！\n如果觉得 Minecraft 还不错，可以购买正版支持一下，毕竟开发游戏也真的很不容易……不要一直白嫖啦。\n在登录一次正版账号后，就不会再出现这个提示了！",
+                        "正版验证",
+                        "你必须先登录正版账号才能启动游戏！",
                         [
-                            .init(text: "支持正版游戏！", onClick: { NSWorkspace.shared.open(URL(string: "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")!) ; PopupButton.Close.onClick() }),
-                            .init(text: "下次一定", onClick: { PopupButton.Close.onClick() ; returnValue = true })
+                            .init(text: "购买正版", onClick: { NSWorkspace.shared.open(URL(string: "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")!) ; PopupButton.Close.onClick() }),
+                            .init(text: "试玩", onClick: { launchOptions.isDemo = true ; returnValue = true ; PopupButton.Close.onClick() }),
+                            .init(text: "返回", onClick: PopupButton.Close.onClick)
                         ]))
-                default:
-                    returnValue = true
                 }
-            } else {
-                ContentView.setPopup(.init(
-                    "正版验证",
-                    "你必须先登录正版账号才能启动游戏！",
-                    [
-                        .init(text: "购买正版", onClick: { NSWorkspace.shared.open(URL(string: "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")!) ; PopupButton.Close.onClick() }),
-                        .init(text: "试玩", onClick: { launchOptions.isDemo = true ; returnValue = true ; PopupButton.Close.onClick() }),
-                        .init(text: "返回", onClick: PopupButton.Close.onClick)
-                    ]))
-            }
-            
-            if !returnValue {
-                return false
+            case .cancelled:
+                returnValue = false
             }
         }
         
-        return true
+        return returnValue
     }
 }
 
