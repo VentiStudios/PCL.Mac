@@ -105,13 +105,13 @@ fileprivate struct LeftTab: View {
         case .failure(let error):
             switch error {
             case .invalidMemoryConfiguration:
-                ContentView.setPopup(.init("错误", "就给 0MB 内存你打算咋跑啊！\n请在 版本设置 > 设置 中调整游戏内存配置", [.Ok]))
+                ContentView.setPopup(.init("错误", "就给 0MB 内存你打算咋跑啊！\n请在 版本设置 > 设置 中调整游戏内存配置", [.Ok], .error))
             case .missingAccount:
                 ContentView.setPopup(PopupOverlay("错误", "请先创建一个账号并选择再启动游戏！", [.Ok], .error))
             case .javaNotFound:
-                ContentView.setPopup(.init("错误", "你还没有安装 Java\n如果你安装过 Java 并且没有在 Java 管理中看到，请点击“手动添加 Java”", [.init(text: "安装 Java", onClick: { NSWorkspace.shared.open(URL(string: "https://www.azul.com/downloads/?package=jdk#zulu")!) ; PopupButton.Close.onClick() }), .Close]))
+                ContentView.setPopup(.init("错误", "你还没有安装 Java\n如果你安装过 Java 并且没有在 Java 管理中看到，请点击“手动添加 Java”", [.init(text: "安装 Java", onClick: { NSWorkspace.shared.open(URL(string: "https://www.azul.com/downloads/?package=jdk#zulu")!) ; PopupButton.Close.onClick() }), .Close], .error))
             case .noUsableJava(let minVersion):
-                ContentView.setPopup(.init("错误", "当前没有满足条件的 Java 版本\n你需要安装 \(minVersion) 及以上版本的 Java！", [.init(text: "安装 Java", onClick: { NSWorkspace.shared.open(URL(string: "https://www.azul.com/downloads/?package=jdk#zulu")!) ; PopupButton.Close.onClick() }), .Close]))
+                ContentView.setPopup(.init("错误", "当前没有满足条件的 Java 版本\n你需要安装 \(minVersion) 及以上版本的 Java！", [.init(text: "安装 Java", onClick: { NSWorkspace.shared.open(URL(string: "https://www.azul.com/downloads/?package=jdk#zulu")!) ; PopupButton.Close.onClick() }), .Close], .error))
             case .noMicrosoftAccount:
                 if Locale.current.identifier.starts(with: "zh") {
                     switch AppSettings.shared.launchCount {

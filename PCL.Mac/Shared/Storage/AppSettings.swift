@@ -69,6 +69,9 @@ public class AppSettings: ObservableObject {
     /// 累计启动次数
     @AppStorage("launchCount") public var launchCount: Int = 0
     
+    /// 启动器是否全屏
+    @AppStorage("fullScreen") public var fullScreen: Bool = false
+    
     public func updateColorScheme() {
         if colorScheme != .system {
             NSApp.appearance = colorScheme == .light ? NSAppearance(named: .aqua) : NSAppearance(named: .darkAqua)

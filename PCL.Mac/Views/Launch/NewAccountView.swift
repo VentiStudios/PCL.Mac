@@ -134,8 +134,9 @@ fileprivate struct NewOfflineAccountView: View {
     var body: some View {
         StaticMyCardComponent(title: "离线账号") {
             VStack(alignment: .leading, spacing: 10) {
-                Text(warningText)
-                    .foregroundStyle(Color(hex: 0xFF2B00))
+                if !warningText.isEmpty {
+                    MyTipComponent(text: warningText, color: .red)
+                }
                 MyTextFieldComponent(text: $state.playerName, placeholder: "玩家名")
                     .onChange(of: state.playerName) { name in
                         warningText = checkPlayerName(name)
