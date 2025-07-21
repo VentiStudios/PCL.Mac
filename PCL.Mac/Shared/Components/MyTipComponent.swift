@@ -15,7 +15,7 @@ struct MyTipComponent: View {
         HStack {
             Rectangle()
                 .frame(width: 3)
-                .foregroundStyle(color.borderColor)
+                .foregroundStyle(color.textColor)
             Text(text)
                 .font(.custom("PCL English", size: 14))
                 .foregroundStyle(color.textColor)
@@ -30,33 +30,21 @@ struct MyTipComponent: View {
 enum TipColor {
     case blue, red, yellow
     
-    fileprivate var backgroundColor: Color {
+    private var hue: Double {
         switch self {
-        case .blue: Color(hex: 0xD9ECFF, alpha: 0.7)
-        case .red: Color(hex: 0xFFDDDF, alpha: 0.7)
-        case .yellow: Color(hex: 0xFFEBD7, alpha: 0.4)
+        case .blue: 210
+        case .red: 355
+        case .yellow: 40
         }
     }
     
-    fileprivate var borderColor: Color {
-        switch self {
-        case .blue: Color(hex: 0x1172D4)
-        case .red: Color(hex: 0xD82929)
-        case .yellow: Color(hex: 0xF57A00)
-        }
-    }
+    fileprivate var backgroundColor: Color { .init(h2: hue, s2: 90, l2: ColorConstants.L7) }
     
-    fileprivate var textColor: Color {
-        switch self {
-        case .blue: Color(hex: 0x0F64B8)
-        case .red: Color(hex: 0xBF0B0B)
-        case .yellow: Color(hex: 0xD86C00)
-        }
-    }
+    fileprivate var textColor: Color { .init(h2: hue, s2: 90, l2: ColorConstants.L2) }
 }
 
 #Preview {
-    MyTipComponent(text: "这是一行测试文本\nawa", color: .blue)
+    MyTipComponent(text: "这是一行测试文本\nawa", color: .red)
         .padding()
         .background(Theme.pcl.getBackgroundStyle())
 }

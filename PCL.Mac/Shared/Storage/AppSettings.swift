@@ -76,7 +76,7 @@ public class AppSettings: ObservableObject {
         if colorScheme != .system {
             NSApp.appearance = colorScheme == .light ? NSAppearance(named: .aqua) : NSAppearance(named: .darkAqua)
         } else {
-            NSApp.appearance = .currentDrawing()
+            NSApp.appearance = NSApplication.shared.windows.first!.effectiveAppearance
         }
     }
     
