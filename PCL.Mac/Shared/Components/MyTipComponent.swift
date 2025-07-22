@@ -44,7 +44,7 @@ enum TipColor {
 }
 
 #Preview {
-    MyTipComponent(text: "这是一行测试文本\nawa", color: .red)
+    MyTipComponent(text: "这是一行测试文本", color: .blue)
         .padding()
         .background(Theme.pcl.getBackgroundStyle())
 }

@@ -119,7 +119,7 @@ fileprivate struct FabricLoaderCard: View {
                     MyCardComponent(index: 1, title: "Fabric") {
                         LazyVStack(spacing: 0) {
                             ForEach(versions) { version in
-                                ListItem(iconName: "Fabric", title: version.loaderVersion, description: version.stable ? "稳定版" : "测试版", isSelected: selected?.loaderVersion == version.loaderVersion)
+                                ListItem(iconName: "FabricIcon", title: version.loaderVersion, description: version.stable ? "稳定版" : "测试版", isSelected: selected?.loaderVersion == version.loaderVersion)
                                     .animation(.easeInOut(duration: 0.2), value: selected?.id)
                                     .onTapGesture {
                                         selected = version
@@ -148,7 +148,7 @@ fileprivate struct FabricLoaderCard: View {
                 HStack {
                     Group {
                         if let selected = selected {
-                            Image("Fabric")
+                            Image("FabricIcon")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 16)

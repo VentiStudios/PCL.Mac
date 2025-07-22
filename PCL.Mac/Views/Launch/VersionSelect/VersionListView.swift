@@ -62,7 +62,7 @@ struct VersionListView: View {
                 ScrollView {
                     let notVanillaVersions = minecraftDirectory.instances.filter { $0.clientBrand != .vanilla }
                     if !notVanillaVersions.isEmpty {
-                        MyCardComponent(title: "可安装 Mod") {
+                        MyCardComponent(index: 0, title: "可安装 Mod") {
                             LazyVStack {
                                 ForEach(
                                     notVanillaVersions
@@ -76,7 +76,7 @@ struct VersionListView: View {
                         }
                         .padding()
                     }
-                    MyCardComponent(title: "常规版本") {
+                    MyCardComponent(index: 1, title: "常规版本") {
                         LazyVStack {
                             ForEach(
                                 minecraftDirectory.instances

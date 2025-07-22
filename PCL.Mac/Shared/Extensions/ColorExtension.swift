@@ -8,7 +8,7 @@
 import SwiftUI
 
 class ColorConstants {
-    private static var isLight: Bool { NSApp.appearance!.bestMatch(from: [.aqua, .darkAqua]) == .aqua || true }
+    private static var isLight: Bool { NSApp.appearance!.bestMatch(from: [.aqua, .darkAqua]) == .aqua }
     
     public static var L1: Double { isLight ? 25 : 96 }
     public static var L2: Double { isLight ? 45 : 75 }

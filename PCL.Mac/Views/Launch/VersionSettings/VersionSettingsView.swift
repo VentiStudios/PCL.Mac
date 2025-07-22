@@ -141,7 +141,7 @@ struct InstanceSettingsView: View {
     
     var body: some View {
         ScrollView {
-            StaticMyCardComponent(title: "进程管理") {
+            StaticMyCardComponent(title: "进程设置") {
                 VStack(alignment: .leading) {
                     HStack {
                         Text("游戏内存")
