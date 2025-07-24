@@ -34,6 +34,7 @@ public enum AppRoute: Hashable {
     case instanceMods
     
     case about
+    case toolbox
     case debug
     
     case personalization
@@ -44,7 +45,7 @@ public enum AppRoute: Hashable {
         switch self {
         case .launch, .download, .multiplayer, .settings, .others,
                 .minecraftDownload, .modSearch,
-                .about, .debug,
+                .about, .toolbox, .debug,
                 .personalization, .javaSettings, .otherSettings:
             return true
         default:
@@ -92,7 +93,7 @@ public class AppRouter: ObservableObject {
             MultiplayerView()
         case .settings, .personalization, .javaSettings, .otherSettings:
             SettingsView()
-        case .others, .about, .debug:
+        case .others, .about, .toolbox, .debug:
             OthersView()
         case .installing(let tasks):
             InstallingView(tasks: tasks)

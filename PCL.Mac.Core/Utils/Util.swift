@@ -141,6 +141,21 @@ public class Util {
         let digest = hasher.finalize()
         return digest.map { String(format: "%02x", $0) }.joined()
     }
+    
+    public static func getFileName(url: URL) -> String? {
+        var urlString = url.absoluteString
+        if urlString.hasSuffix("/") { return nil }
+        
+        if let qIndex = urlString.firstIndex(of: "?") {
+            urlString = String(urlString[..<qIndex])
+        }
+        
+        if let lastBackslash = urlString.lastIndex(of: "/") {
+            let fileNameStart = urlString.index(after: lastBackslash)
+            urlString = String(urlString[fileNameStart...])
+        }
+        return urlString
+    }
 }
 
 public struct MavenCoordinate {

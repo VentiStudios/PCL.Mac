@@ -72,11 +72,14 @@ public class AppSettings: ObservableObject {
     /// 启动器是否全屏
     @AppStorage("fullScreen") public var fullScreen: Bool = false
     
+    /// 下载自定义文件时的保存 URL
+    @AppStorage("customFilesSaveUrl") public var customFilesSaveUrl: URL = URL(fileURLWithUserPath: "~/Downloads")
+    
     public func updateColorScheme() {
         if colorScheme != .system {
             NSApp.appearance = colorScheme == .light ? NSAppearance(named: .aqua) : NSAppearance(named: .darkAqua)
         } else {
-            NSApp.appearance = NSApplication.shared.windows.first!.effectiveAppearance
+            NSApp.appearance = nil
         }
     }
     

@@ -65,7 +65,9 @@ public class MinecraftInstaller {
             url: URL(string: task.manifest!.clientDownload!.url)!,
             destination: clientJarUrl,
             chunkCount: 32
-        )
+        ) { finished, total in
+            task.currentStagePercentage = Double(finished) / Double(total)
+        }
         await downloader.start()
         task.completeOneFile()
     }

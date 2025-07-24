@@ -15,6 +15,8 @@ struct OthersView: View {
             switch dataManager.router.getLast() {
             case .about:
                 AboutView()
+            case .toolbox:
+                ToolboxView()
             case .debug:
                 DebugView()
             default:
@@ -26,7 +28,7 @@ struct OthersView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     MyListComponent(
                         default: .about,
-                        cases: .constant(SharedConstants.shared.isDevelopment ? [.about, .debug] : [.about])
+                        cases: .constant(SharedConstants.shared.isDevelopment ? [.about, .toolbox, .debug] : [.about])
                     ) { type, isSelected in
                         createListItemView(type)
                             .foregroundStyle(isSelected ? AnyShapeStyle(AppSettings.shared.theme.getTextStyle()) : AnyShapeStyle(Color("TextColor")))
@@ -40,31 +42,32 @@ struct OthersView: View {
     }
     
     private func createListItemView(_ lastComponent: AppRoute) -> some View {
+        var imageName: String
+        var text: String
+        
         switch lastComponent {
         case .about:
-            return AnyView(
-                HStack {
-                    Image("AboutIcon")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
-                    Text("关于与鸣谢")
-                        .font(.custom("PCL English", size: 14))
-                }
-            )
+            imageName = "AboutIcon"
+            text = "关于与鸣谢"
+        case .toolbox:
+            imageName = "BoxIcon"
+            text = "百宝箱"
         case .debug:
-            return AnyView(
-                HStack {
-                    Image("InstallWaiting")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
-                    Text("调试")
-                        .font(.custom("PCL English", size: 14))
-                }
-            )
+            imageName = "InstallWaiting"
+            text = "调试"
         default:
             return AnyView(EmptyView())
         }
+        
+        return AnyView(
+            HStack {
+                Image(imageName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                Text(text)
+                    .font(.custom("PCL English", size: 14))
+            }
+        )
     }
 }
