@@ -86,6 +86,7 @@ public class CacheStorage {
         if FileManager.default.fileExists(atPath: dest.path) { return }
         
         do {
+            try? FileManager.default.createDirectory(at: dest.parent(), withIntermediateDirectories: true)
             try FileManager.default.copyItem(at: path, to: dest)
         } catch {
             err("无法复制文件: \(error.localizedDescription)")

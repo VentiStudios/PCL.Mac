@@ -61,17 +61,13 @@ public class MinecraftInstaller {
     private static func downloadClientJar(_ task: MinecraftInstallTask, skipIfExists: Bool = false) async {
         task.updateStage(.clientJar)
         let clientJarUrl = task.versionUrl.appending(path: "\(task.name).jar")
-        await withCheckedContinuation { continuation in
-            let downloader = ProgressiveDownloader(
-                task: task,
-                urls: [URL(string: "https://bmclapi2.bangbang93.com/version/\(task.minecraftVersion.displayName)/client")!],
-                destinations: [clientJarUrl],
-                skipIfExists: skipIfExists,
-                completion: {
-                continuation.resume()
-            })
-            downloader.start()
-        }
+        let downloader = ChunkedDownloader(
+            url: URL(string: task.manifest!.clientDownload!.url)!,
+            destination: clientJarUrl,
+            chunkCount: 32
+        )
+        await downloader.start()
+        task.completeOneFile()
     }
     
     // MARK: 下载资源索引

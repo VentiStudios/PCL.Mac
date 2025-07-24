@@ -18,9 +18,9 @@ public class ClientManifest {
     public let arguments: Arguments?
     public let minecraftArguments: String?
     public let javaVersion: Int?
-    public let clientDownload: Library?
+    public let clientDownload: DownloadInfo?
     
-    private init(id: String, mainClass: String, type: String, assetIndex: AssetIndex, assets: String, libraries: [Library], arguments: Arguments?, minecraftArguments: String?, javaVersion: Int?, clientDownload: Library?) {
+    private init(id: String, mainClass: String, type: String, assetIndex: AssetIndex, assets: String, libraries: [Library], arguments: Arguments?, minecraftArguments: String?, javaVersion: Int?, clientDownload: DownloadInfo?) {
         self.id = id
         self.mainClass = mainClass
         self.type = type
