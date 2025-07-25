@@ -13,6 +13,10 @@ public class MinecraftCrashHandler {
     
     
     public static func exportErrorReport(_ instance: MinecraftInstance, _ launcher: MinecraftLauncher, to destination: URL) {
+        log("以下是 PCL.Mac 检测到的环境信息:")
+        log("架构: \(ExecArchitectury.SystemArch)")
+        log("分支: \(SharedConstants.shared.branch)")
+        
         debug("正在导出错误报告")
         let tmp = SharedConstants.shared.applicationTemperatureUrl.appending(path: "ErrorReport")
         try? FileManager.default.createDirectory(at: tmp, withIntermediateDirectories: true)
