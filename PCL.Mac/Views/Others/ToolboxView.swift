@@ -19,7 +19,7 @@ struct ToolboxView: View {
         ScrollView {
             StaticMyCardComponent(title: "下载自定义文件") {
                 VStack {
-                    Text("使用 PCL.Mac 的高速多线程下载引擎下载任意文件。请注意，部分网站（例如百度网盘）可能还会报错 (403) 已禁止，无法正常下载。")
+                    Text("使用 PCL.Mac 的高速多线程下载引擎下载任意文件。请注意，部分网站（例如百度网盘）可能还会报错 (403) 已禁止，无法正常下载。\n注：自定义下载进度获取暂未完成，所以显示 0.0% 是正常的！")
                     CustomDownloadOption(label: "下载地址", $downloadUrl) { urlString in
                         if let scheme = URL(string: urlString)?.scheme, scheme == "http" || scheme == "https" {
                             return ""
@@ -78,7 +78,7 @@ struct ToolboxView: View {
                             task.onComplete {
                                 hint("下载完成！", .finish)
                             }
-                            DataManager.shared.inprogressInstallTasks = .single(task)
+                            DataManager.shared.inprogressInstallTasks = .single(task, key: "customFile")
                             task.start()
                             hint("开始下载 \(fileName)")
                         }

@@ -80,7 +80,6 @@ struct DownloadPage: View {
                                 DispatchQueue.main.async {
                                     HintManager.default.add(.init(text: "\(name) 下载完成！", type: .finish))
                                     AppSettings.shared.defaultInstance = name
-                                    DataManager.shared.router.removeLast()
                                 }
                             }
                         }

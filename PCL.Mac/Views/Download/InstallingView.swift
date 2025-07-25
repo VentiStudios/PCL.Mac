@@ -17,7 +17,7 @@ struct InstallingView: View {
                 Spacer()
                 PanelView(
                     title: "总进度",
-                    value: tasks.totalFiles == -1 ? "未知" : String(format: "%.1f %%", tasks.getProgress() * 100)
+                    value: tasks.totalFiles < 0 ? "未知" : String(format: "%.1f %%", tasks.getProgress() * 100)
                 )
                 PanelView(
                     title: "下载速度",
@@ -25,7 +25,7 @@ struct InstallingView: View {
                 )
                 PanelView(
                     title: "剩余文件",
-                    value: String(describing: tasks.remainingFiles)
+                    value: tasks.remainingFiles < 0 ? "-" : String(describing: tasks.remainingFiles)
                 )
                 Spacer()
             }

@@ -48,6 +48,9 @@ public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
         self.updateStage(.end)
         DispatchQueue.main.async {
             DataManager.shared.inprogressInstallTasks = nil
+            if case .installing(_) = DataManager.shared.router.getLast() {
+                DataManager.shared.router.removeLast()
+            }
             self.callback?()
         }
     }
@@ -88,7 +91,7 @@ public class InstallTasks: ObservableObject, Identifiable, Hashable, Equatable {
     }
     
     public func getTasks() -> [InstallTask] {
-        let order = ["minecraft", "fabric"]
+        let order = ["minecraft", "fabric", "customFile"]
         return order.compactMap { tasks[$0] }
     }
     
@@ -215,7 +218,6 @@ public class CustomFileInstallTask: InstallTask {
                 self.progress = Double(finished) / Double(total)
             }
             await downloader.start()
-            completeOneFile()
             complete()
         }
     }

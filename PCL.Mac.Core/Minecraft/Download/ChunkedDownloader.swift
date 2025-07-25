@@ -2,7 +2,7 @@
 //  ChunkedDownloader.swift
 //  PCL.Mac
 //
-//  Created by Claude on 2025/6/1.
+//  Created by YiZhiMCQiu on 2025/6/1.
 //
 
 import Foundation
