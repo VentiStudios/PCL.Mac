@@ -10,20 +10,14 @@ import ZIPFoundation
 import CryptoKit
 
 public class Util {
-    public static func getMainClass(_ jarUrl: URL) -> String? {
+    public static func getMainClass(_ jarURL: URL) -> String? {
         do {
-            let archive = try Archive(url: jarUrl, accessMode: .read)
-            if let manifest = archive["META-INF/MANIFEST.MF"] {
-                var data = Data()
-                _ = try archive.extract(manifest, consumer: { (chunk) in
-                    data.append(chunk)
-                })
-                
-                let manifest = String(data: data, encoding: .utf8)!
+            let archive = try Archive(url: jarURL, accessMode: .read)
+            let data = try ArchiveUtil.getEntryOrThrow(archive: archive, name: "META-INF/MANIFEST.MF")
+            let manifest = String(data: data, encoding: .utf8)!
 
-                if let match = manifest.firstMatch(of: /(?m)^Main-Class:\s*([^\r\n]+)/) {
-                    return String(match.1)
-                }
+            if let match = manifest.firstMatch(of: /(?m)^Main-Class:\s*([^\r\n]+)/) {
+                return String(match.1)
             }
         } catch {
             err("无法获取主类: \(error.localizedDescription)")
@@ -43,7 +37,7 @@ public class Util {
             )
             return String(data: prettyData, encoding: .utf8)
         } catch {
-            err("JSON格式化失败: \(error)")
+            err("JSON格式化失败: \(error.localizedDescription)")
             return nil
         }
     }
@@ -90,7 +84,7 @@ public class Util {
     public static func clearTemp() {
         do {
             let contents = try FileManager.default.contentsOfDirectory(
-                at: SharedConstants.shared.applicationTemperatureUrl,
+                at: SharedConstants.shared.temperatureURL,
                 includingPropertiesForKeys: nil,
                 options: []
             )
@@ -102,10 +96,10 @@ public class Util {
         }
     }
     
-    public static func unzip(archiveUrl: URL, destination: URL, replace: Bool = true) {
+    public static func unzip(archiveURL: URL, destination: URL, replace: Bool = true) {
         let archive: Archive
         do {
-            archive = try Archive(url: archiveUrl, accessMode: .read)
+            archive = try Archive(url: archiveURL, accessMode: .read)
         } catch {
             err("无法读取文件: \(error.localizedDescription)")
             return
@@ -140,6 +134,25 @@ public class Util {
         }
         let digest = hasher.finalize()
         return digest.map { String(format: "%02x", $0) }.joined()
+    }
+    
+    public static func getFileName(url: URL) -> String? {
+        var urlString = url.absoluteString
+        if urlString.hasSuffix("/") { return nil }
+        
+        if let qIndex = urlString.firstIndex(of: "?") {
+            urlString = String(urlString[..<qIndex])
+        }
+        
+        if let lastBackslash = urlString.lastIndex(of: "/") {
+            let fileNameStart = urlString.index(after: lastBackslash)
+            urlString = String(urlString[fileNameStart...])
+        }
+        return urlString
+    }
+    
+    public static func replaceRoot(url: any URLConvertible, root: String, target: String) -> any URLConvertible {
+        return URL(string: url.url.absoluteString.replacingOccurrences(of: root, with: target))!
     }
 }
 

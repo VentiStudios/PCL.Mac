@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,12 +26,21 @@ jobs:
       
       - name: Generate Secrets.xcconfig
         run: |
-            echo "CLIENT_ID = $CLIENT_ID" > Secrets.xcconfig
             echo "IS_DEVELOPMENT = false" >> Secrets.xcconfig
             echo "BRANCH = $BRANCH" >> Secrets.xcconfig
         env:
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           BRANCH: ${{ github.ref_name }}
+    
+      - name: Replace secrets
+        run: |
+            sed -i '' "s/{{ARTIFACT_PAT}}/$ARTIFACT_PAT/g" PCL.Mac/Secrets.swift
+            sed -i '' "s/{{CLIENT_ID}}/$CLIENT_ID/g" PCL.Mac/Secrets.swift
+            sed -i '' "s/{{THEME_KEY}}/$THEME_KEY/g" PCL.Mac/Secrets.swift
+        env:
+          ARTIFACT_PAT: ${{ secrets.ARTIFACT_PAT }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          THEME_KEY: ${{ secrets.THEME_KEY }}
 
       - name: Build Universal Binary (xcodebuild)
         run: |
@@ -39,19 +48,19 @@ jobs:
           SCHEME="PCL.Mac"
 
           if [ -d "$PROJECT" ]; then
-            xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
+            xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release -archivePath build \
               -xcconfig Secrets.xcconfig \
               ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO \
-              CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO build
+              CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO archive
           else
             echo "PCL.Mac.xcodeproj not found!"
             exit 1
           fi
 
-      - name: Find and copy .app to build/Release
+      - name: Copy .app to build/Release
         run: |
           mkdir -p build/Release
-          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData/ -type d -path "*/Build/Products/Release/PCL.Mac.app" | head -n 1)
+          APP_PATH="build.xcarchive/Products/Applications/PCL.Mac.app"
           if [ -d "$APP_PATH" ]; then
             cp -R "$APP_PATH" build/Release/
           else

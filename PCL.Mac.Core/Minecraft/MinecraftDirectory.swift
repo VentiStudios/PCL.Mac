@@ -7,40 +7,68 @@
 
 import Foundation
 
-public struct MinecraftDirectory {
-    public let rootUrl: URL
+public class MinecraftDirectory: Codable, Identifiable, Hashable {
+    public static let `default`: MinecraftDirectory = .init(rootURL: .applicationSupportDirectory.appending(path: "minecraft"), name: "默认文件夹")
     
-    public var versionsUrl: URL {
-        rootUrl.appendingPathComponent("versions")
+    public var id: UUID
+    public let rootURL: URL
+    public var name: String
+    public var instances: [MinecraftInstance] = []
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(rootURL)
     }
     
-    public var assetsUrl: URL {
-        rootUrl.appendingPathComponent("assets")
+    public var versionsURL: URL {
+        rootURL.appendingPathComponent("versions")
     }
     
-    public var librariesUrl: URL {
-        rootUrl.appendingPathComponent("libraries")
+    public var assetsURL: URL {
+        rootURL.appendingPathComponent("assets")
     }
     
-    public init(rootUrl: URL) {
-        self.rootUrl = rootUrl
+    public var librariesURL: URL {
+        rootURL.appendingPathComponent("libraries")
     }
     
-    public func getInnerInstances() -> [MinecraftInstance] {
-        var instances: [MinecraftInstance] = []
-        do {
-            let contents = try FileManager.default.contentsOfDirectory(at: versionsUrl, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles])
-            let folderUrls = contents.filter { url in
-                (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
-            }
-            for folderUrl in folderUrls {
-                if let version = MinecraftInstance.create(runningDirectory: folderUrl) {
-                    instances.append(version)
+    public init(rootURL: URL, name: String) {
+        self.id = .init()
+        self.rootURL = rootURL
+        self.name = name
+    }
+    
+    enum CodingKeys: CodingKey {
+        case id
+        case rootURL
+        case name
+    }
+    
+    public static func == (lhs: MinecraftDirectory, rhs: MinecraftDirectory) -> Bool {
+        lhs.rootURL == rhs.rootURL
+    }
+    
+    public func loadInnerInstances(callback: (([MinecraftInstance]) -> Void)? = nil) {
+        instances.removeAll()
+        Task {
+            do {
+                let contents = try FileManager.default.contentsOfDirectory(at: versionsURL, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles])
+                let folderURLs = contents.filter { url in
+                    (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
                 }
+                for folderURL in folderURLs {
+                    if let version = MinecraftInstance.create(self, folderURL) {
+                        DispatchQueue.main.async {
+                            self.instances.append(version)
+                        }
+                    }
+                }
+                DispatchQueue.main.async {
+                    callback?(self.instances)
+                    DataManager.shared.objectWillChange.send()
+                }
+            } catch {
+                err("读取版本目录失败: \(error.localizedDescription)")
             }
-        } catch {
-            err("读取版本目录失败: \(error)")
         }
-        return instances
     }
 }

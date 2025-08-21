@@ -9,13 +9,14 @@
 /* Begin PBXBuildFile section */
 		EC01E7E82DDC3BEA006EF529 /* log4j2.xml in Resources */ = {isa = PBXBuildFile; fileRef = EC01E7E62DDC3BEA006EF529 /* log4j2.xml */; };
 		EC01E7E92DDC3BEA006EF529 /* log4j2-1.12-.xml in Resources */ = {isa = PBXBuildFile; fileRef = EC01E7E72DDC3BEA006EF529 /* log4j2-1.12-.xml */; };
+		EC1B64132E57238B000EF1F4 /* SwiftyJSON in Frameworks */ = {isa = PBXBuildFile; productRef = EC1B64122E57238B000EF1F4 /* SwiftyJSON */; };
+		EC1B64162E57239D000EF1F4 /* TOMLKit in Frameworks */ = {isa = PBXBuildFile; productRef = EC1B64152E57239D000EF1F4 /* TOMLKit */; };
+		EC1B64192E5723C9000EF1F4 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = EC1B64182E5723C9000EF1F4 /* ZIPFoundation */; };
 		EC23B6332DE5DC5B00CBEA9C /* PCL.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EC23B6322DE5DC5B00CBEA9C /* PCL.ttf */; };
 		EC422DAB2E2082D900FE8309 /* PCL_Mac_Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC422DA32E2082D900FE8309 /* PCL_Mac_Core.framework */; };
 		EC422DAD2E2082D900FE8309 /* PCL_Mac_Core.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = EC422DA32E2082D900FE8309 /* PCL_Mac_Core.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		EC9507372DFCF17700018EE0 /* SwiftyJSON in Frameworks */ = {isa = PBXBuildFile; productRef = EC9507362DFCF17700018EE0 /* SwiftyJSON */; };
+		EC4E6C802E438E6600F0871D /* daemon in Resources */ = {isa = PBXBuildFile; fileRef = EC4E6C7F2E438E6600F0871D /* daemon */; };
 		EC9A7DCA2DE150170018815F /* glfw-patcher.jar in Resources */ = {isa = PBXBuildFile; fileRef = EC9A7DC82DE1500F0018815F /* glfw-patcher.jar */; };
-		ECA55A702E0415BE006499CC /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = ECA55A6F2E0415BE006499CC /* Alamofire */; };
-		ECDBF0CC2E1124C500E81482 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = ECDBF0CB2E1124C500E81482 /* ZIPFoundation */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,9 +55,9 @@
 		EC01E7E72DDC3BEA006EF529 /* log4j2-1.12-.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "log4j2-1.12-.xml"; sourceTree = "<group>"; };
 		EC23B6322DE5DC5B00CBEA9C /* PCL.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = PCL.ttf; sourceTree = "<group>"; };
 		EC422DA32E2082D900FE8309 /* PCL_Mac_Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PCL_Mac_Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		EC4E6C7F2E438E6600F0871D /* daemon */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = daemon; sourceTree = "<group>"; };
 		EC9A7DC82DE1500F0018815F /* glfw-patcher.jar */ = {isa = PBXFileReference; lastKnownFileType = archive.jar; path = "glfw-patcher.jar"; sourceTree = "<group>"; };
 		EC9EAEC92DD85E48006CEDCC /* PCL.Mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PCL.Mac.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		EC9EF35A2E1E6CD7002EF8E0 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		ECA5D8DC2DD99A4C006C58F7 /* PCL.Mac.Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PCL.Mac.Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -65,33 +66,49 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Announcement/AnnouncementManager.swift,
+				Architecture.swift,
+				Aria2/Aria2Manager.swift,
+				Java/JavaDownloader.swift,
 				Java/JavaSearch.swift,
+				LogManager.swift,
 				Minecraft/AssetIndex.swift,
 				Minecraft/ClientManifest.swift,
 				Minecraft/Download/ArtifactVersionMapper.swift,
-				Minecraft/Download/ChunkedDownloader.swift,
 				Minecraft/Download/InstallTask.swift,
 				Minecraft/Download/MinecraftInstaller.swift,
 				Minecraft/Download/ProgressiveDownloader.swift,
 				Minecraft/Download/VersionManifest.swift,
+				Minecraft/Launch/LaunchOptions.swift,
+				Minecraft/Launch/LaunchPrecheck.swift,
 				Minecraft/Launch/MinecraftLauncher.swift,
 				Minecraft/Login/Account/AccountManager.swift,
-				Minecraft/Login/Account/MsAccount.swift,
+				Minecraft/Login/Account/MicrosoftAccount.swift,
 				Minecraft/Login/Account/OfflineAccount.swift,
+				Minecraft/Login/Account/YggdrasilAccount.swift,
 				Minecraft/Login/MsLogin.swift,
+				Minecraft/MinecraftCrashHandler.swift,
 				Minecraft/MinecraftDirectory.swift,
 				Minecraft/MinecraftInstance.swift,
 				Minecraft/MinecraftVersion.swift,
-				Minecraft/Mod/Loader/FabricManifest.swift,
-				Minecraft/Mod/Loader/ModLoaderInstaller.swift,
-				Minecraft/Mod/Loader/NeoforgeInstallProfile.swift,
-				Minecraft/Mod/Loader/NeoforgeManifest.swift,
+				Minecraft/Mod/Loader/Fabric/FabricInstaller.swift,
+				Minecraft/Mod/Loader/Fabric/FabricManifest.swift,
+				Minecraft/Mod/Loader/Forge/ForgeInstaller.swift,
+				Minecraft/Mod/Loader/Forge/ForgeInstallProfile.swift,
+				Minecraft/Mod/Loader/Forge/NeoforgeInstaller.swift,
 				Minecraft/Mod/Mod.swift,
-				Minecraft/Mod/ModInstaller.swift,
+				Modrinth/ModrinthProjectSearcher.swift,
+				Modrinth/ProjectSummary.swift,
+				Modrinth/ResourceDownloader.swift,
+				Requests.swift,
 				Storage/AccessTokenStorage.swift,
 				Storage/CacheStorage.swift,
-				Theme/ThemeDownloader.swift,
+				Temp/TemperatureDirectory.swift,
+				Theme/ThemeOwnershipChecker.swift,
+				UpdateCheck.swift,
+				Utils/ArchiveUtil.swift,
+				Utils/MyLocalizedError.swift,
 				Utils/Util.swift,
+				YggdrasilClient.swift,
 			);
 			target = EC9EAEC82DD85E48006CEDCC /* PCL.Mac */;
 		};
@@ -99,50 +116,52 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Announcement/AnnouncementManager.swift,
+				Architecture.swift,
+				Aria2/Aria2Manager.swift,
+				Java/JavaDownloader.swift,
 				Java/JavaSearch.swift,
+				LogManager.swift,
 				Minecraft/AssetIndex.swift,
 				Minecraft/ClientManifest.swift,
 				Minecraft/Download/ArtifactVersionMapper.swift,
-				Minecraft/Download/ChunkedDownloader.swift,
 				Minecraft/Download/InstallTask.swift,
 				Minecraft/Download/MinecraftInstaller.swift,
 				Minecraft/Download/ProgressiveDownloader.swift,
 				Minecraft/Download/VersionManifest.swift,
+				Minecraft/Launch/LaunchOptions.swift,
+				Minecraft/Launch/LaunchPrecheck.swift,
 				Minecraft/Launch/MinecraftLauncher.swift,
 				Minecraft/Login/Account/AccountManager.swift,
-				Minecraft/Login/Account/MsAccount.swift,
+				Minecraft/Login/Account/MicrosoftAccount.swift,
 				Minecraft/Login/Account/OfflineAccount.swift,
+				Minecraft/Login/Account/YggdrasilAccount.swift,
 				Minecraft/Login/MsLogin.swift,
+				Minecraft/MinecraftCrashHandler.swift,
 				Minecraft/MinecraftDirectory.swift,
 				Minecraft/MinecraftInstance.swift,
 				Minecraft/MinecraftVersion.swift,
-				Minecraft/Mod/Loader/FabricManifest.swift,
-				Minecraft/Mod/Loader/ModLoaderInstaller.swift,
-				Minecraft/Mod/Loader/NeoforgeInstallProfile.swift,
-				Minecraft/Mod/Loader/NeoforgeManifest.swift,
+				Minecraft/Mod/Loader/Fabric/FabricInstaller.swift,
+				Minecraft/Mod/Loader/Fabric/FabricManifest.swift,
+				Minecraft/Mod/Loader/Forge/ForgeInstaller.swift,
+				Minecraft/Mod/Loader/Forge/ForgeInstallProfile.swift,
+				Minecraft/Mod/Loader/Forge/NeoforgeInstaller.swift,
 				Minecraft/Mod/Mod.swift,
-				Minecraft/Mod/ModInstaller.swift,
+				Modrinth/ModrinthProjectSearcher.swift,
+				Modrinth/ProjectSummary.swift,
+				Modrinth/ResourceDownloader.swift,
+				Requests.swift,
 				Storage/AccessTokenStorage.swift,
 				Storage/CacheStorage.swift,
-				Theme/ThemeDownloader.swift,
+				Temp/TemperatureDirectory.swift,
+				Theme/ThemeOwnershipChecker.swift,
+				UpdateCheck.swift,
+				Utils/ArchiveUtil.swift,
+				Utils/MyLocalizedError.swift,
 				Utils/Util.swift,
+				YggdrasilClient.swift,
 			);
 			publicHeaders = (
 				PCL_Mac_Core.h,
-			);
-			target = EC422DA22E2082D900FE8309 /* PCL.Mac.Core */;
-		};
-		EC9928612E20D404002EF913 /* Exceptions for "PCL.Mac.Tests" folder in "PCL.Mac.Tests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				PCLMacTests.swift,
-			);
-			target = ECA5D8DB2DD99A4C006C58F7 /* PCL.Mac.Tests */;
-		};
-		EC9928622E20D404002EF913 /* Exceptions for "PCL.Mac.Tests" folder in "PCL.Mac.Core" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				PCLMacTests.swift,
 			);
 			target = EC422DA22E2082D900FE8309 /* PCL.Mac.Core */;
 		};
@@ -176,21 +195,22 @@
 			path = PCL.Mac.Core;
 			sourceTree = "<group>";
 		};
-		EC99285F2E20D404002EF913 /* PCL.Mac.Tests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				EC9928612E20D404002EF913 /* Exceptions for "PCL.Mac.Tests" folder in "PCL.Mac.Tests" target */,
-				EC9928622E20D404002EF913 /* Exceptions for "PCL.Mac.Tests" folder in "PCL.Mac.Core" target */,
-			);
-			path = PCL.Mac.Tests;
-			sourceTree = "<group>";
-		};
 		EC9EAECB2DD85E48006CEDCC /* PCL.Mac */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				ECD256602DDBE69800A0F233 /* Exceptions for "PCL.Mac" folder in "PCL.Mac" target */,
 			);
 			path = PCL.Mac;
+			sourceTree = "<group>";
+		};
+		ECA5D8DD2DD99A4C006C58F7 /* PCL.Mac.Tests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PCL.Mac.Tests;
+			sourceTree = "<group>";
+		};
+		ECFAA4FE2E419A3200CE1E6E /* Themes */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Themes;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -207,10 +227,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ECA55A702E0415BE006499CC /* Alamofire in Frameworks */,
+				EC1B64162E57239D000EF1F4 /* TOMLKit in Frameworks */,
+				EC1B64132E57238B000EF1F4 /* SwiftyJSON in Frameworks */,
 				EC422DAB2E2082D900FE8309 /* PCL_Mac_Core.framework in Frameworks */,
-				EC9507372DFCF17700018EE0 /* SwiftyJSON in Frameworks */,
-				ECDBF0CC2E1124C500E81482 /* ZIPFoundation in Frameworks */,
+				EC1B64192E5723C9000EF1F4 /* ZIPFoundation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -227,10 +247,12 @@
 		EC01E7E52DDC3BD2006EF529 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				ECFAA4FE2E419A3200CE1E6E /* Themes */,
 				EC23B6322DE5DC5B00CBEA9C /* PCL.ttf */,
 				EC9A7DC82DE1500F0018815F /* glfw-patcher.jar */,
 				EC01E7E62DDC3BEA006EF529 /* log4j2.xml */,
 				EC01E7E72DDC3BEA006EF529 /* log4j2-1.12-.xml */,
+				EC4E6C7F2E438E6600F0871D /* daemon */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -247,11 +269,10 @@
 			children = (
 				EC01E7E52DDC3BD2006EF529 /* Resources */,
 				EC9EAECB2DD85E48006CEDCC /* PCL.Mac */,
+				ECA5D8DD2DD99A4C006C58F7 /* PCL.Mac.Tests */,
 				EC422DA42E2082D900FE8309 /* PCL.Mac.Core */,
 				EC84E73F2DDD56E500524871 /* Frameworks */,
 				EC9EAECA2DD85E48006CEDCC /* Products */,
-				EC9EF35A2E1E6CD7002EF8E0 /* Secrets.xcconfig */,
-				EC99285F2E20D404002EF913 /* PCL.Mac.Tests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -293,7 +314,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				EC422DA42E2082D900FE8309 /* PCL.Mac.Core */,
-				EC99285F2E20D404002EF913 /* PCL.Mac.Tests */,
 			);
 			name = PCL.Mac.Core;
 			packageProductDependencies = (
@@ -318,12 +338,13 @@
 			);
 			fileSystemSynchronizedGroups = (
 				EC9EAECB2DD85E48006CEDCC /* PCL.Mac */,
+				ECFAA4FE2E419A3200CE1E6E /* Themes */,
 			);
 			name = PCL.Mac;
 			packageProductDependencies = (
-				EC9507362DFCF17700018EE0 /* SwiftyJSON */,
-				ECA55A6F2E0415BE006499CC /* Alamofire */,
-				ECDBF0CB2E1124C500E81482 /* ZIPFoundation */,
+				EC1B64122E57238B000EF1F4 /* SwiftyJSON */,
+				EC1B64152E57239D000EF1F4 /* TOMLKit */,
+				EC1B64182E5723C9000EF1F4 /* ZIPFoundation */,
 			);
 			productName = "PCL-Mac";
 			productReference = EC9EAEC92DD85E48006CEDCC /* PCL.Mac.app */;
@@ -341,6 +362,9 @@
 			);
 			dependencies = (
 				ECA5D8E12DD99A4C006C58F7 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				ECA5D8DD2DD99A4C006C58F7 /* PCL.Mac.Tests */,
 			);
 			name = PCL.Mac.Tests;
 			packageProductDependencies = (
@@ -383,9 +407,9 @@
 			mainGroup = EC9EAEC02DD85E48006CEDCC;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				EC9507352DFCF17700018EE0 /* XCRemoteSwiftPackageReference "SwiftyJSON" */,
-				ECA55A6E2E0415BE006499CC /* XCRemoteSwiftPackageReference "Alamofire" */,
-				ECDBF0CA2E1124C500E81482 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+				EC1B64112E57238B000EF1F4 /* XCRemoteSwiftPackageReference "SwiftyJSON" */,
+				EC1B64142E57239D000EF1F4 /* XCRemoteSwiftPackageReference "TOMLKit" */,
+				EC1B64172E5723C9000EF1F4 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = EC9EAECA2DD85E48006CEDCC /* Products */;
@@ -414,6 +438,7 @@
 				EC9A7DCA2DE150170018815F /* glfw-patcher.jar in Resources */,
 				EC01E7E82DDC3BEA006EF529 /* log4j2.xml in Resources */,
 				EC23B6332DE5DC5B00CBEA9C /* PCL.ttf in Resources */,
+				EC4E6C802E438E6600F0871D /* daemon in Resources */,
 				EC01E7E92DDC3BEA006EF529 /* log4j2-1.12-.xml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -540,7 +565,6 @@
 		};
 		EC9EAED62DD85E49006CEDCC /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = EC9EF35A2E1E6CD7002EF8E0 /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -606,7 +630,6 @@
 		};
 		EC9EAED72DD85E49006CEDCC /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = EC9EF35A2E1E6CD7002EF8E0 /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -664,7 +687,6 @@
 		};
 		EC9EAED92DD85E49006CEDCC /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = EC9EF35A2E1E6CD7002EF8E0 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -683,11 +705,12 @@
 				INFOPLIST_FILE = PCL.Mac/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PCL.Mac;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "部分语音 Mod 需要开启麦克风权限（如 SimpleVoice）";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "io.github.pcl-communtiy.PCL-Mac";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -698,7 +721,6 @@
 		};
 		EC9EAEDA2DD85E49006CEDCC /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = EC9EF35A2E1E6CD7002EF8E0 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -717,11 +739,12 @@
 				INFOPLIST_FILE = PCL.Mac/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PCL.Mac;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "部分语音 Mod 需要开启麦克风权限（如 SimpleVoice）";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "io.github.pcl-communtiy.PCL-Mac";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -806,7 +829,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		EC9507352DFCF17700018EE0 /* XCRemoteSwiftPackageReference "SwiftyJSON" */ = {
+		EC1B64112E57238B000EF1F4 /* XCRemoteSwiftPackageReference "SwiftyJSON" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SwiftyJSON/SwiftyJSON";
 			requirement = {
@@ -814,15 +837,15 @@
 				minimumVersion = 5.0.2;
 			};
 		};
-		ECA55A6E2E0415BE006499CC /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+		EC1B64142E57239D000EF1F4 /* XCRemoteSwiftPackageReference "TOMLKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Alamofire/Alamofire";
+			repositoryURL = "https://github.com/LebJe/TOMLKit";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 5.10.2;
+				minimumVersion = 0.6.0;
 			};
 		};
-		ECDBF0CA2E1124C500E81482 /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
+		EC1B64172E5723C9000EF1F4 /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/weichsel/ZIPFoundation";
 			requirement = {
@@ -833,19 +856,19 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		EC9507362DFCF17700018EE0 /* SwiftyJSON */ = {
+		EC1B64122E57238B000EF1F4 /* SwiftyJSON */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = EC9507352DFCF17700018EE0 /* XCRemoteSwiftPackageReference "SwiftyJSON" */;
+			package = EC1B64112E57238B000EF1F4 /* XCRemoteSwiftPackageReference "SwiftyJSON" */;
 			productName = SwiftyJSON;
 		};
-		ECA55A6F2E0415BE006499CC /* Alamofire */ = {
+		EC1B64152E57239D000EF1F4 /* TOMLKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = ECA55A6E2E0415BE006499CC /* XCRemoteSwiftPackageReference "Alamofire" */;
-			productName = Alamofire;
+			package = EC1B64142E57239D000EF1F4 /* XCRemoteSwiftPackageReference "TOMLKit" */;
+			productName = TOMLKit;
 		};
-		ECDBF0CB2E1124C500E81482 /* ZIPFoundation */ = {
+		EC1B64182E5723C9000EF1F4 /* ZIPFoundation */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = ECDBF0CA2E1124C500E81482 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
+			package = EC1B64172E5723C9000EF1F4 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
 			productName = ZIPFoundation;
 		};
 /* End XCSwiftPackageProductDependency section */

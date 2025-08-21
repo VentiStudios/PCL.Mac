@@ -27,7 +27,7 @@ struct GitHubScene: View {
     var body: some View {
         HStack {
             Text(text)
-                .foregroundStyle(rainbowText ? Theme.colorful.getTextStyle() : .init(.white))
+//                .foregroundStyle(rainbowText ? Theme.colorful.getTextStyle() : .init(.white))
                 .font(.system(size: 20))
                 .offset(x: textOffset)
                 .opacity(textOpacity)

@@ -61,7 +61,8 @@ struct DemoScene: View {
                 }
             }
         }
-        .onChange(of: secondsSinceStart) { new in
+        .onChange(of: secondsSinceStart) {
+            let new = secondsSinceStart
             if new >= 33 && new <= 33.1 {
                 changeText("如你所见，这就是 PCL.Mac 的主页面")
             }
@@ -111,7 +112,6 @@ struct DemoScene: View {
                 changeText("同时 App 大小仅 22 MB，启动器启动耗时 < 200 ms，且支持主题功能！")
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     withAnimation(.spring(duration: 1)) {
-                        AppSettings.shared.theme = .colorful
                         DataManager.shared.objectWillChange.send()
                     }
                 }

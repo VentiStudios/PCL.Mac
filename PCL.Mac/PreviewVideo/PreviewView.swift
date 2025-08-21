@@ -40,7 +40,6 @@ struct PreviewOverlay: View {
                         .opacity(showText3 ? 1 : 0)
                     Text("macOS Minecraft 启动器")
                         .opacity(showText4 ? 1 : 0)
-                        .foregroundStyle(Theme.colorful.getStyle())
                 }
                 .font(.system(size: 80))
             }

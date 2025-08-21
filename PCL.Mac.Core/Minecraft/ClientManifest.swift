@@ -12,35 +12,27 @@ public class ClientManifest {
     public let id: String
     public var mainClass: String
     public let type: String
-    public let assetIndex: AssetIndex
+    public let assetIndex: AssetIndex?
     public let assets: String
     public var libraries: [Library]
     public let arguments: Arguments?
-    public let minecraftArguments: String?
+    public var minecraftArguments: String?
     public let javaVersion: Int?
-    
-    private init(id: String, mainClass: String, type: String, assetIndex: AssetIndex, assets: String, libraries: [Library], arguments: Arguments?, minecraftArguments: String?, javaVersion: Int?) {
-        self.id = id
-        self.mainClass = mainClass
-        self.type = type
-        self.assetIndex = assetIndex
-        self.assets = assets
-        self.libraries = libraries
-        self.arguments = arguments
-        self.minecraftArguments = minecraftArguments
-        self.javaVersion = javaVersion
-    }
+    public let clientDownload: DownloadInfo?
+    public let clientMappingsDownload: DownloadInfo?
 
-    private init(json: JSON) {
+    private init?(json: JSON) {
         self.id = json["id"].stringValue
         self.mainClass = json["mainClass"].stringValue
         self.type = json["type"].stringValue
         self.assets = json["assets"].stringValue
-        self.assetIndex = AssetIndex(json: json["assetIndex"])
-        self.libraries = json["libraries"].arrayValue.map(Library.init(json:))
+        self.assetIndex = json["assetIndex"].exists() ? AssetIndex(json: json["assetIndex"]) : nil
+        self.libraries = json["libraries"].arrayValue.compactMap(Library.init(json:)).filter { $0.rules.isEmpty ? true : $0.rules.allSatisfy { $0.match() } }
         self.arguments = json["arguments"].exists() ? Arguments(json: json["arguments"]) : nil
         self.minecraftArguments = json["minecraftArguments"].string
         self.javaVersion = json["javaVersion"]["majorVersion"].int
+        self.clientDownload = json["downloads"]["client"].exists() ? .init(json: json["downloads"]["client"]) : nil
+        self.clientMappingsDownload = json["downloads"]["client_mappings"].exists() ? .init(json: json["downloads"]["client_mappings"]) : nil
     }
 
     public class AssetIndex {
@@ -80,63 +72,65 @@ public class ClientManifest {
     }
 
     public class Library: Hashable {
-        public let name: String
-        private let split: [String]
-        public var groupId: String
-        public var artifactId: String
-        public var version: String
-        public var classifier: String?
+        public var name: String {
+            didSet {
+                split = name.split(separator: ":").map(String.init)
+            }
+        }
+        private var split: [String]
+        public var groupId: String { split[0] }
+        public var artifactId: String { split[1] }
+        public var version: String { split[2] }
+        public var classifier: String? { split.count >= 4 ? split[3] : nil }
         public let rules: [Rule]
         public let natives: [String: String]
         public let artifact: DownloadInfo?
-        public let classifiers: [String: DownloadInfo]
+        public let isNativeLibrary: Bool
 
-        public init(json: JSON) {
-            name = json["name"].stringValue
-            split = name.split(separator: ":").map(String.init)
-            groupId = split[0]
-            artifactId = split[1]
-            version = split[2]
-            classifier = split.count >= 4 ? split[3] : nil
+        public init?(json: JSON) {
+            self.name = json["name"].stringValue
+            self.split = name.split(separator: ":").map(String.init)
+            if split.isEmpty {
+                return nil
+            }
             
-            if json["url"].exists() { // Fabric 依赖
+            if !json["downloads"].exists() {
                 self.rules = []
-                self.classifiers = [:]
                 self.natives = [:]
                 let path = Util.toPath(mavenCoordinate: name)
-                self.artifact = DownloadInfo(path: path, url: URL(string: json["url"].stringValue)!.appending(path: path).absoluteString)
+                self.artifact = DownloadInfo(
+                    path: path,
+                    url: (URL(string: json["url"].stringValue) ?? URL(string: "https://bmclapi2.bangbang93.com/maven")!).appending(path: path).absoluteString
+                )
             } else {
-                if artifactId == "launchwrapper" {
+                if split[1] == "launchwrapper" {
                     self.rules = []
-                    self.classifiers = [:]
                     self.natives = [:]
                     let path = Util.toPath(mavenCoordinate: name)
                     self.artifact = DownloadInfo(path: path, url: URL(string: "https://libraries.minecraft.net")!.appending(path: path).absoluteString)
                 } else {
-                    rules = json["rules"].arrayValue.map { Rule(json: $0) }
-                    natives = json["natives"].dictionaryObject as? [String: String] ?? [:]
-                    artifact = json["downloads"]["artifact"].exists() ? DownloadInfo(json: json["downloads"]["artifact"]) : nil
-                    if let cls = json["downloads"]["classifiers"].dictionary {
-                        var result: [String: DownloadInfo] = [:]
-                        for (k, v) in cls {
-                            result[k] = DownloadInfo(json: v)
-                        }
-                        classifiers = result
+                    self.rules = json["rules"].arrayValue.map { Rule(json: $0) }
+                    self.natives = json["natives"].dictionaryObject as? [String: String] ?? [:]
+                    
+                    if let classifiers = json["downloads"]["classifiers"].dictionary,
+                       let key = natives["osx"],
+                       let json = classifiers[key] {
+                        self.artifact = DownloadInfo(json: json)
+                        self.isNativeLibrary = true
+                        return
                     } else {
-                        classifiers = [:]
+                        self.artifact = json["downloads"]["artifact"].exists() ? DownloadInfo(json: json["downloads"]["artifact"]) : nil
                     }
                 }
             }
+            
+            self.isNativeLibrary = false
         }
         
-        public func getNativeArtifact() -> DownloadInfo? {
-            let key = natives["osx"]
-            guard let key, let nativeDl = classifiers[key] else { return nil }
-            return nativeDl
+        public static func == (lhs: Library, rhs: Library) -> Bool { lhs.name == rhs.name }
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(name)
         }
-        
-        public static func ==(lhs: Library, rhs: Library) -> Bool { lhs.name == rhs.name }
-        public func hash(into hasher: inout Hasher) { hasher.combine(name) }
     }
 
     public class Arguments {
@@ -272,53 +266,35 @@ public class ClientManifest {
         }
     }
     
-    public static func createFromFabricManifest(_ fabricManifest: FabricManifest, _ instanceUrl: URL) -> ClientManifest {
-        let manifest: ClientManifest = .init(
-            id: fabricManifest.loaderVersion,
-            mainClass: fabricManifest.mainClass,
-            type: "fabric",
-            assetIndex: .init(json: .null),
-            assets: "",
-            libraries: fabricManifest.libraries,
-            arguments: nil,
-            minecraftArguments: nil,
-            javaVersion: nil
-        )
-        
-        let parent: ClientManifest
-        let parentUrl = instanceUrl.appending(path: ".pcl_mac").appending(path: "\(fabricManifest.minecraftVersion).json")
-        
-        do {
-            let data = try FileHandle(forReadingFrom: parentUrl).readToEnd()!
-            parent = try .parse(data, instanceUrl: instanceUrl)
-        } catch {
-            err("无法解析 inheritsFrom: \(error)")
-            return manifest
-        }
-        
-        return merge(parent: parent, manifest: manifest)
-    }
-
-    public static func parse(_ data: Data, instanceUrl: URL?) throws -> ClientManifest {
+    /// 尝试解析与自动合并客户端清单，不会对实例进行操作
+    /// - Parameter url: 清单路径
+    /// - Parameter minecraftDirectory: 若需自动合并，该参数的值为实例所在的 minecraft 目录，否则为空
+    public static func parse(url: URL, minecraftDirectory: MinecraftDirectory? = nil) throws -> ClientManifest? {
+        let data = try FileHandle(forReadingFrom: url).readToEnd() ?? Data()
         let json = try JSON(data: data)
+        
+        if json["loader"].exists() && json["intermediary"].exists() && !json["id"].exists() { // 旧版 PCL.Mac Fabric 安装逻辑
+            warn("无法解析旧版 PCL.Mac 安装的 Fabric 版本: \(url.lastPathComponent)")
+            return nil
+        }
         
     checkParent:
         if let inheritsFrom = json["inheritsFrom"].string,
-           let instanceUrl = instanceUrl {
-            let parentUrl = instanceUrl.appending(path: ".pcl_mac").appending(path: "\(inheritsFrom).json")
+           let minecraftDirectory = minecraftDirectory {
+            let parentURL = minecraftDirectory.versionsURL.appending(path: inheritsFrom).appending(path: "\(inheritsFrom).json")
             
-            guard FileManager.default.fileExists(atPath: parentUrl.path) else {
-                err("\(instanceUrl.lastPathComponent) 的客户端清单中有 inheritsFrom 字段，但其对应的 JSON 不存在")
-                break checkParent
+            guard FileManager.default.fileExists(atPath: parentURL.path) else {
+                err("\(url.path) 中有 inheritsFrom 字段，但其对应的 JSON 不存在")
+                return nil
             }
             
             let parent: ClientManifest
-            let manifest = ClientManifest(json: json)
+            guard let manifest = ClientManifest(json: json) else { return nil }
             do {
-                let data = try FileHandle(forReadingFrom: parentUrl).readToEnd()!
-                parent = try .parse(data, instanceUrl: instanceUrl)
+                guard let manifest = try ClientManifest.parse(url: parentURL, minecraftDirectory: minecraftDirectory) else { return nil }
+                parent = manifest
             } catch {
-                err("无法解析 inheritsFrom: \(error)")
+                err("无法解析 inheritsFrom: \(error.localizedDescription)")
                 break checkParent
             }
             
@@ -327,43 +303,42 @@ public class ClientManifest {
         return ClientManifest(json: json)
     }
     
+    public static func deduplicateLibraries(_ manifest: ClientManifest) {
+        // 修正 libraries
+        ArtifactVersionMapper.map(manifest, arch: .x64)
+        
+        var librarySet: Set<HashableLibrary> = .init()
+        manifest.libraries = manifest.libraries.filter { librarySet.insert(.init($0)).inserted }
+    }
+    
     private static func merge(parent: ClientManifest, manifest: ClientManifest) -> ClientManifest {
         parent.libraries.insert(contentsOf: manifest.libraries, at: 0)
+        deduplicateLibraries(parent)
+        
         parent.arguments?.game.append(contentsOf: manifest.arguments?.game ?? [])
         parent.arguments?.jvm.append(contentsOf: manifest.arguments?.jvm ?? [])
+        parent.minecraftArguments = manifest.minecraftArguments
         parent.mainClass = manifest.mainClass
         
         return parent
     }
 
     public func getNeededLibraries() -> [Library] {
-        getAllowedLibraries().filter { lib in
-            return !lib.name.contains("natives") && lib.artifact != nil
-        }
+        getAllowedLibraries().filter { !$0.isNativeLibrary }
     }
-    public func getAllowedLibraries() -> [Library] {
-        libraries.filter { lib in
-            (lib.rules.isEmpty ? true : lib.rules.allSatisfy { $0.match() })
-        }
-    }
+    
+    public func getAllowedLibraries() -> [Library] { libraries }
+    
     public func getNeededNatives() -> [Library: DownloadInfo] {
         var result: [Library: DownloadInfo] = [:]
-        for lib in getAllowedLibraries() {
-            if let artifact = lib.getNativeArtifact() {
-                result[lib] = artifact
-            } else if let artifact = lib.artifact,
-                      lib.name.hasPrefix("org.lwjgl"),
-                      lib.name.contains("natives") {
-//                if lib.classifier!.hasSuffix("arm64") && ExecArchitectury.SystemArch == .arm64
-//                    || !lib.classifier!.hasSuffix("arm64") && ExecArchitectury.SystemArch == .x64 {
-                    result[lib] = artifact
-//                } else {
-//                    debug("已筛出与系统架构不匹配的本地库: \(lib.name)")
-//                }
+        for library in getAllowedLibraries() {
+            if library.isNativeLibrary {
+                result[library] = library.artifact
             }
         }
         return result
     }
+    
     public func getArguments() -> Arguments {
         if let arguments = self.arguments {
             return arguments
@@ -380,6 +355,26 @@ public class ClientManifest {
             return Arguments(game: gameArgs, jvm: jvmArgs)
         } else {
             return Arguments(game: [], jvm: [])
+        }
+    }
+    
+    private class HashableLibrary: Hashable {
+        private let library: Library
+        
+        init(_ library: Library) {
+            self.library = library
+        }
+        
+        static func == (lhs: HashableLibrary, rhs: HashableLibrary) -> Bool {
+            lhs.library.groupId == rhs.library.groupId
+            && lhs.library.artifactId == rhs.library.artifactId
+            && lhs.library.classifier == rhs.library.classifier
+        }
+        
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(library.groupId)
+            hasher.combine(library.artifactId)
+            hasher.combine(library.classifier)
         }
     }
 }

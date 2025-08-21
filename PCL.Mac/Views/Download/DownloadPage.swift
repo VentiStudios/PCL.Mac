@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Alamofire
 
 struct DownloadPage: View {
     let version: MinecraftVersion
@@ -14,18 +13,20 @@ struct DownloadPage: View {
     
     @State private var name: String
     @State private var tasks: InstallTasks = .empty()
+    @State private var errorMessage: String = ""
+    @State private var loader: LoaderVersion? = nil
     
     init(_ version: MinecraftVersion, _ back: @escaping () -> Void) {
         self.version = version
         self.name = version.displayName
         self.back = back
-        self.tasks.addTask(key: "minecraft", task: MinecraftInstaller.createTask(version, version.displayName, MinecraftDirectory(rootUrl: URL(fileURLWithUserPath: "~/PCL-Mac-minecraft"))))
+        self.tasks.addTask(key: "minecraft", task: MinecraftInstaller.createTask(version, version.displayName, AppSettings.shared.currentMinecraftDirectory!))
     }
     
     var body: some View {
         ZStack {
             ScrollView {
-                TitlelessMyCardComponent(hasAnimation: false) {
+                TitlelessMyCard {
                     HStack(alignment: .center) {
                         Image("Back")
                             .resizable()
@@ -36,19 +37,53 @@ struct DownloadPage: View {
                             .onTapGesture {
                                 back()
                             }
-                        Image(version.getIconName())
+                        Image(loader != nil ? "\(loader!.loader.rawValue.capitalized)Icon" : version.getIconName())
                             .resizable()
                             .scaledToFit()
                             .frame(width: 35)
-                        MyTextFieldComponent(text: self.$name)
-                            .frame(height: 12)
-                            .foregroundStyle(Color("TextColor"))
+                        VStack {
+                            MyTextField(text: $name)
+                                .foregroundStyle(Color("TextColor"))
+                                .onChange(of: name) {
+                                    checkName()
+                                }
+                            if !errorMessage.isEmpty {
+                                Text(errorMessage)
+                                    .foregroundStyle(Color(hex: 0xFF4C4C))
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                        }
+                        .animation(.easeInOut(duration: 0.2), value: errorMessage)
                     }
                 }
+                .noAnimation()
                 .padding()
-                FabricLoaderCard(tasks: $tasks, version: version)
-                    .padding()
-                    .padding(.top, 20)
+                
+                VStack {
+                    LoaderCard(loader: .fabric, selectedLoader: $loader, name: $name, version: version)
+                        .padding()
+                        .padding(.top, 20)
+                    
+                    LoaderCard(loader: .forge, selectedLoader: $loader, name: $name, version: version)
+                        .padding()
+                    
+                    LoaderCard(loader: .neoforge, selectedLoader: $loader, name: $name, version: version)
+                        .padding()
+                }
+                .onChange(of: loader) { old, new in
+                    // 移除 Mod 加载器
+                    if let old, new == nil {
+                        if name == version.displayName + "-" + old.loader.getName() {
+                            name = version.displayName
+                        }
+                        checkName()
+                    }
+                    // 添加 Mod 加载器
+                    else if let new, old == nil {
+                        if name == version.displayName { name.append("-\(new.loader.getName())") }
+                    }
+                }
+                
                 Spacer()
             }
             .scrollIndicators(.never)
@@ -67,13 +102,31 @@ struct DownloadPage: View {
                                 .font(.custom("PCL English", size: 16))
                         }
                     } onClick: {
+                        guard errorMessage.isEmpty else {
+                            hint(errorMessage, .critical)
+                            return
+                        }
+                        
                         guard NetworkTest.shared.hasNetworkConnection() else {
-                            ContentView.setPopup(PopupOverlay("无互联网连接", "请确保当前设备已联网！", [.Ok]))
+                            PopupManager.shared.show(.init(.error, "无互联网连接", "请确保当前设备已联网！", [.ok]))
                             warn("试图下载新版本，但无网络连接")
                             return
                         }
                         
                         if DataManager.shared.inprogressInstallTasks != nil { return }
+                        
+                        if let loader {
+                            let taskConstructor: ((String) -> InstallTask)? =
+                            switch loader.loader {
+                            case .fabric: FabricInstallTask.init(loaderVersion:)
+                            case .forge: ForgeInstallTask.init(forgeVersion:)
+                            case .neoforge: NeoforgeInstallTask.init(neoforgeVersion:)
+                            default: nil
+                            }
+                            if let taskConstructor {
+                                tasks.addTask(key: loader.loader.rawValue, task: taskConstructor(loader.version))
+                            }
+                        }
                         
                         if let task = tasks.tasks["minecraft"] as? MinecraftInstallTask {
                             task.name = self.name
@@ -81,7 +134,6 @@ struct DownloadPage: View {
                                 DispatchQueue.main.async {
                                     HintManager.default.add(.init(text: "\(name) 下载完成！", type: .finish))
                                     AppSettings.shared.defaultInstance = name
-                                    DataManager.shared.router.removeLast()
                                 }
                             }
                         }
@@ -97,65 +149,108 @@ struct DownloadPage: View {
             }
         }
     }
+    
+    private func checkName() {
+        if name == version.displayName && loader != nil {
+            errorMessage = "带 Mod 加载器的实例名不能与版本号一致！"
+        } else if name.isEmpty {
+            errorMessage = "实例名不能为空！"
+        } else {
+            errorMessage = ""
+        }
+    }
 }
 
-fileprivate struct FabricLoaderCard: View {
-    @State private var versions: [FabricManifest]? = nil
-    @State private var height: CGFloat = .zero
-    @State private var showText: Bool = true
-    @State private var selected: FabricManifest? = nil
-    @Binding private var tasks: InstallTasks
+private struct LoaderVersion: Identifiable, Equatable {
+    let id: UUID = .init()
+    let loader: ClientBrand
+    let version: String
+    let stable: Bool
+    var displayName: String
     
-    let version: MinecraftVersion
+    init(loader: ClientBrand, version: String, stable: Bool) {
+        self.init(loader: loader, version: version, stable: stable, displayName: version)
+    }
     
-    init(tasks: Binding<InstallTasks>, version: MinecraftVersion) {
-        self._tasks = tasks
+    init(loader: ClientBrand, version: String, stable: Bool, displayName: String) {
+        self.loader = loader
         self.version = version
+        self.stable = stable
+        self.displayName = displayName
+    }
+    
+    static func == (lhs: LoaderVersion, rhs: LoaderVersion) -> Bool {
+        lhs.version == rhs.version && lhs.loader == rhs.loader
+    }
+}
+
+fileprivate struct LoaderCard: View {
+    @State private var showFoldController: Bool = false
+    @State private var showCancelButton: Bool = false
+    @State private var versions: [LoaderVersion]? = nil
+    @State private var isUnfolded: Bool = false
+    @State private var text: String = "加载中……"
+    @Binding private var selectedLoader: LoaderVersion?
+    @Binding private var name: String
+    
+    private let loader: ClientBrand
+    private let version: MinecraftVersion
+    
+    init(loader: ClientBrand, selectedLoader: Binding<LoaderVersion?>, name: Binding<String>, version: MinecraftVersion) {
+        self.loader = loader
+        self.version = version
+        self._selectedLoader = selectedLoader
+        self._name = name.wrappedValue == version.displayName ? name : .constant(name.wrappedValue)
     }
     
     var body: some View {
         ZStack {
-            Group {
-                if let versions = versions, !versions.isEmpty {
-                    MyCardComponent(index: 1, hasAnimation: false, title: "Fabric") {
-                        LazyVStack(spacing: 0) {
-                            ForEach(versions) { version in
-                                ListItem(iconName: "Fabric", title: version.loaderVersion, description: version.stable ? "稳定版" : "测试版", isSelected: selected?.loaderVersion == version.loaderVersion)
-                                    .animation(.easeInOut(duration: 0.2), value: selected?.id)
-                                    .onTapGesture {
-                                        selected = version
-                                        tasks.addTask(key: "fabric", task: FabricInstallTask(loaderVersion: selected!.loaderVersion))
+            if showFoldController, let versions = versions {
+                MyCard(title: loader.getName(), unfoldBinding: $isUnfolded) {
+                    LazyVStack(spacing: 0) {
+                        ForEach(versions) { version in
+                            ListItem(iconName: "\(loader.rawValue.capitalized)Icon", title: version.displayName, description: version.stable ? "稳定版" : "测试版", isSelected: selectedLoader == version)
+                                .animation(.easeInOut(duration: 0.2), value: selectedLoader?.id)
+                                .onTapGesture {
+                                    selectedLoader = version
+                                    isUnfolded = false
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                                        showFoldController = false
+                                        showCancelButton = true
                                     }
-                            }
+                                }
                         }
-                    }
-                    .onToggle { isUnfolded in
-                        showText = !isUnfolded
-                    }
-                } else {
-                    TitlelessMyCardComponent(index: 1, hasAnimation: false) {
-                        HStack {
-                            MaskedTextRectangle(text: "Fabric")
-                            Spacer()
-                        }
-                        .frame(height: 9)
                     }
                 }
-            }
-            
-            if showText {
-                HStack {
-                    Group {
-                        if let selected = selected {
-                            Image("Fabric")
+                .noAnimation()
+            } else {
+                TitlelessMyCard {
+                    HStack {
+                        MaskedTextRectangle(text: loader.getName())
+                        Spacer()
+                        if showCancelButton {
+                            Image(systemName: "xmark")
                                 .resizable()
                                 .scaledToFit()
+                                .bold()
                                 .frame(width: 16)
-                            Text(selected.loaderVersion)
-                        } else {
-                            Text(text)
+                                .foregroundStyle(Color("TextColor"))
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    showCancelButton = false
+                                    showFoldController = true
+                                    selectedLoader = nil
+                                }
                         }
                     }
+                    .frame(height: 9)
+                }
+                .noAnimation()
+            }
+            
+            if !isUnfolded {
+                HStack {
+                    overlayContent
                     .font(.custom("PCL English", size: 14))
                     .foregroundStyle(Color(hex: 0x8C8C8C))
                     .offset(x: 150, y: 14)
@@ -165,34 +260,84 @@ fileprivate struct FabricLoaderCard: View {
                 .allowsHitTesting(false)
             }
         }
-        .onAppear {
-            loadVersions()
+        .task {
+            await loadVersions()
         }
-    }
-    
-    private var text: String {
-        if versions == nil {
-            return "加载中……"
-        }
-        
-        if versions!.isEmpty {
-            return "无可用版本"
-        }
-        
-        return "可以添加"
-    }
-    
-    private func loadVersions() {
-        Task {
-            if let data = try? await AF.request(
-                "https://meta.fabricmc.net/v2/versions/loader/\(version.displayName)"
-            ).serializingResponse(using: .data).value,
-               let manifests = try? FabricManifest.parse(data) {
+        .onChange(of: versions) {
+            guard let versions else {
+                text = "加载中……"
+                return
+            }
+            
+            if versions.isEmpty {
+                text = "无可用版本"
+            } else {
+                text = "可以添加"
                 DispatchQueue.main.async {
-                    versions = manifests
+                    showFoldController = true
                 }
             }
         }
+        .onChange(of: selectedLoader) {
+            if let selectedLoader, selectedLoader.loader != loader {
+                text = "与 \(selectedLoader.loader.getName()) 不兼容"
+                showFoldController = false
+                isUnfolded = false
+            } else if selectedLoader == nil {
+                text = "可以添加"
+                showFoldController = true
+            }
+        }
+    }
+    
+    private var overlayContent: some View {
+        HStack {
+            if let selected = selectedLoader, selected.loader == loader {
+                Image("\(loader.rawValue.capitalized)Icon")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 16)
+                Text(selected.displayName)
+            } else {
+                Text(text)
+            }
+        }
+    }
+    
+    private func loadVersions() async {
+        var versions: [LoaderVersion] = []
+        switch loader {
+        case .fabric:
+            if let json = await Requests.get("https://meta.fabricmc.net/v2/versions/loader/\(version.displayName)").json {
+                versions = json.arrayValue.map { LoaderVersion(loader: .fabric, version: $0["loader"]["version"].stringValue, stable: $0["loader"]["stable"].boolValue) }
+            }
+        case .forge:
+            if let json = await Requests.get("https://bmclapi2.bangbang93.com/forge/minecraft/\(version.displayName)").json {
+                versions = json.arrayValue.map { LoaderVersion(loader: .forge, version: $0["version"].stringValue, stable: true) }
+            }
+        case .neoforge:
+            if let json = await Requests.get("https://bmclapi2.bangbang93.com/neoforge/list/\(version.displayName)").json {
+                versions = json.arrayValue.map { LoaderVersion(loader: .neoforge, version: $0["version"].stringValue, stable: true) }
+            }
+        default:
+            break
+        }
+        
+        for i in 0..<versions.count {
+            if versions[i].version.starts(with: "1.20.1") {
+                versions[i] = LoaderVersion(
+                    loader: versions[i].loader,
+                    version: versions[i].version,
+                    stable: versions[i].stable,
+                    displayName: String(versions[i].version.dropFirst(7))
+                )
+            }
+        }
+        
+        versions.sort { version1, version2 in
+            return version1.displayName.compare(version2.displayName, options: .numeric) == .orderedDescending
+        }
+        self.versions = versions
     }
     
     private struct ListItem: View {
@@ -209,7 +354,7 @@ fileprivate struct FabricLoaderCard: View {
         }
         
         var body: some View {
-            MyListItemComponent(isSelected: isSelected) {
+            MyListItem(isSelected: isSelected) {
                 HStack {
                     Image(iconName)
                         .resizable()

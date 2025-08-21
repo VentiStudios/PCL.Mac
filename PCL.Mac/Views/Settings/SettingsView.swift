@@ -26,7 +26,10 @@ struct SettingsView: View {
         .onAppear {
             dataManager.leftTab(120) {
                 VStack(alignment: .leading, spacing: 0) {
-                    MyListComponent(default: .personalization, cases: [.personalization, .javaSettings, .otherSettings]) { type, isSelected in
+                    MyList(
+                        root: .settings,
+                        cases: .constant([.personalization, .javaSettings, .otherSettings])
+                    ) { type, isSelected in
                         createListItemView(type)
                             .foregroundStyle(isSelected ? AnyShapeStyle(AppSettings.shared.theme.getTextStyle()) : AnyShapeStyle(Color("TextColor")))
                     }

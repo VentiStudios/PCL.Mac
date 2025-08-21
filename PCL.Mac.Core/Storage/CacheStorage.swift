@@ -8,21 +8,27 @@
 import Foundation
 import SwiftyJSON
 
+/// 用于缓存下载项
 public class CacheStorage {
-    public static let `default`: CacheStorage = .init(rootUrl: .applicationSupportDirectory.appending(path: "minecraft").appending(path: "cache"))
+    public static let `default`: CacheStorage = .init(rootURL: .applicationSupportDirectory.appending(path: "minecraft").appending(path: "cache"))
     
-    private let rootUrl: URL
+    private let rootURL: URL
     private var libraries: [Library]
     
-    public init(rootUrl: URL) {
-        self.rootUrl = rootUrl
-        try? FileManager.default.createDirectory(at: rootUrl.parent(), withIntermediateDirectories: true)
-        do {
-            let data = try FileHandle(forReadingFrom: rootUrl.appending(path: "index.json")).readToEnd()!
-            let json = try JSON(data: data)
-            self.libraries = json["libraries"].arrayValue.map(Library.init)
-        } catch {
-            err("无法读取 index.json: \(error.localizedDescription)")
+    public init(rootURL: URL) {
+        self.rootURL = rootURL
+        try? FileManager.default.createDirectory(at: rootURL, withIntermediateDirectories: true)
+        let indexURL = rootURL.appending(path: "index.json")
+        if FileManager.default.fileExists(atPath: indexURL.path) {
+            do {
+                let data = try FileHandle(forReadingFrom: indexURL).readToEnd()!
+                let json = try JSON(data: data)
+                self.libraries = json["libraries"].arrayValue.map(Library.init)
+            } catch {
+                err("无法读取 index.json: \(error.localizedDescription)")
+                self.libraries = []
+            }
+        } else {
             self.libraries = []
         }
     }
@@ -31,14 +37,14 @@ public class CacheStorage {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         do {
-            try encoder.encode(["libraries" : libraries]).write(to: rootUrl.appending(path: "index.json"), options: .atomic)
+            try encoder.encode(["libraries" : libraries]).write(to: rootURL.appending(path: "index.json"), options: .atomic)
         } catch {
             err("无法保存 libraries: \(error.localizedDescription)")
         }
     }
     
     public func getLibraryPath(_ hash: String) -> URL {
-        rootUrl
+        rootURL
             .appending(path: "SHA-1")
             .appending(path: String(hash.prefix(2)))
             .appending(path: hash)
@@ -86,7 +92,9 @@ public class CacheStorage {
         if FileManager.default.fileExists(atPath: dest.path) { return }
         
         do {
+            try? FileManager.default.createDirectory(at: dest.parent(), withIntermediateDirectories: true)
             try FileManager.default.copyItem(at: path, to: dest)
+            save()
         } catch {
             err("无法复制文件: \(error.localizedDescription)")
             return

@@ -15,6 +15,10 @@ public class AssetIndex {
         self.objects = json["objects"].dictionaryValue.values.map(Object.init)
     }
     
+    public init(objects: [Object]) {
+        self.objects = objects
+    }
+    
     public class Object {
         public let hash: String
         public let size: Int32

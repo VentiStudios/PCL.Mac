@@ -9,8 +9,8 @@ import Foundation
 
 public final class ProgressiveDownloader: NSObject, URLSessionDownloadDelegate {
     public let task: InstallTask?
-    public let urls: [URL]
-    public let destinations: [URL]
+    public var urls: [URL]
+    public var destinations: [URL]
     public let concurrentLimit: Int
     public let skipIfExists: Bool
     public let progressCallback: ((Int, Int, Double, Double) -> Void)?
@@ -62,7 +62,6 @@ public final class ProgressiveDownloader: NSObject, URLSessionDownloadDelegate {
             guard index < urls.count else { return }
             let dest = destinations[index]
             if skipIfExists && FileManager.default.fileExists(atPath: dest.path) {
-                debug("\(dest.path) 已存在，跳过")
                 lock.lock()
                 finishedCount += 1
                 task?.completeOneFile()
@@ -77,7 +76,8 @@ public final class ProgressiveDownloader: NSObject, URLSessionDownloadDelegate {
                 }
                 continue
             }
-            let request = URLRequest(url: urls[index])
+            var request = URLRequest(url: urls[index])
+            request.setValue("PCLMac/\(SharedConstants.shared.version)", forHTTPHeaderField: "User-Agent")
             let task = session.downloadTask(with: request)
             task.taskDescription = "\(index)"
             task.resume()

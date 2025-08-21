@@ -21,7 +21,9 @@ fileprivate struct VersionView: View, Identifiable {
         
         var description = SharedConstants.shared.dateFormatter.string(from: version.releaseTime)
         if isLatest {
-            description = "最新\(version.type == "release" ? "正式" : "预览")版，发布于 " + description
+            description = "最新\(version.type == .release ? "正式" : "预览")版，发布于 " + description
+        } else if version.type == .aprilFool {
+            description = VersionManifest.getAprilFoolDescription(version.id)
         }
         self.description = description
         
@@ -31,7 +33,7 @@ fileprivate struct VersionView: View, Identifiable {
     }
     
     var body: some View {
-        MyListItemComponent {
+        MyListItem {
             HStack {
                 Image(self.icon)
                     .resizable()
@@ -74,7 +76,7 @@ struct MinecraftDownloadView: View {
                 ScrollView(.vertical, showsIndicators: true) {
                     VStack {
                         if let manifest = dataManager.versionManifest {
-                            StaticMyCardComponent(index: 0, title: "最新版本") {
+                            StaticMyCard(index: 0, title: "最新版本") {
                                 VStack {
                                     VersionView(version: manifest.getLatestRelease(), isLatest: true, parent: self)
                                     VersionView(version: manifest.getLatestSnapshot(), isLatest: true, parent: self)
@@ -102,10 +104,10 @@ struct MinecraftDownloadView: View {
         .animation(.easeInOut(duration: 0.2), value: currentDownloadPage == nil)
         .onAppear {
             var versions: [String: [VersionManifest.GameVersion]] = [:]
-            versions["release"] = dataManager.versionManifest!.versions.filter { $0.type == "release" }
-            versions["snapshot"] = dataManager.versionManifest!.versions.filter { $0.type == "snapshot" }
-            versions["old"] = dataManager.versionManifest!.versions.filter { $0.type == "old_beta" || $0.type == "old_alpha" }
-            versions["april_fool"] = dataManager.versionManifest!.versions.filter { $0.type == "april_fool" }
+            versions["release"] = dataManager.versionManifest!.versions.filter { $0.type == .release }
+            versions["snapshot"] = dataManager.versionManifest!.versions.filter { $0.type == .snapshot || $0.type == .pending }
+            versions["old"] = dataManager.versionManifest!.versions.filter { $0.type == .beta || $0.type == .alpha }
+            versions["april_fool"] = dataManager.versionManifest!.versions.filter { $0.type == .aprilFool }
             self.versions = versions
         }
     }
@@ -125,7 +127,7 @@ fileprivate struct CategoryCard: View {
     let parent: MinecraftDownloadView
     
     var body: some View {
-        MyCardComponent(index: index, title: "\(label) (\(versions.count))") {
+        MyCard(index: index, title: "\(label) (\(versions.count))") {
             LazyVStack {
                 ForEach(versions, id: \.self) { version in
                     VersionView(version: version, parent: parent)
@@ -133,6 +135,7 @@ fileprivate struct CategoryCard: View {
             }
             .padding(.top, 12)
         }
+        .cardId(label)
         .padding()
     }
 }

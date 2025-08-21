@@ -41,43 +41,44 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         LogStore.shared.clear()
         let start = Date().timeIntervalSince1970
         log("App 已启动")
-        AppSettings.shared.updateColorScheme()
+        _ = AppSettings.shared
         registerCustomFonts()
         DataManager.shared.refreshVersionManifest()
         
         log("正在初始化 Java 列表")
         initJavaList()
-        
-        let directory = MinecraftDirectory(rootUrl: URL(fileURLWithUserPath: "~/PCL-Mac-minecraft"))
-        
-        if let defaultInstance = AppSettings.shared.defaultInstance,
-           MinecraftInstance.create(runningDirectory: directory.versionsUrl.appending(path: defaultInstance)) == nil {
-            warn("无效的 defaultInstance 配置")
-            AppSettings.shared.defaultInstance = nil
-        }
-        
-        if AppSettings.shared.defaultInstance == nil {
-            AppSettings.shared.defaultInstance = MinecraftDirectory(rootUrl: URL(fileURLWithUserPath: "~/PCL-Mac-minecraft")).getInnerInstances().first?.config.name
-        }
-        
         log("App 初始化完成, 耗时 \(Int((Date().timeIntervalSince1970 - start) * 1000))ms")
+        
+        let daemonProcess = Process()
+        daemonProcess.executableURL = SharedConstants.shared.applicationResourcesURL.appending(path: "daemon")
+        do {
+            try daemonProcess.run()
+            log("守护进程已启动")
+        } catch {
+            err("无法开启守护进程: \(error.localizedDescription)")
+        }
     }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         if AppSettings.shared.showPclMacPopup {
-            ContentView.setPopup(
-                PopupOverlay(
-                    "不欢迎使用 PCL.Mac 宣传片版 :(",
-                    "若要反馈问题，请到 QQ 群 1047463389，或直接在 GitHub 上开 Issue，而不是去 CE 群！",
-                    [.init(text: "永久关闭") { AppSettings.shared.showPclMacPopup = false ; PopupButton.Close.onClick() }, .Ok]
-                )
-            )
+            Task {
+                if await PopupManager.shared.showAsync(
+                    .init(.normal, "不欢迎使用 PCL.Mac 宣传片版 :(", "本启动器是 Plain Craft Launcher（作者：龙腾猫跃）的非官方衍生版。\n若要反馈问题，请到 QQ 群 1047463389，或直接在 GitHub 上开 Issue。", [.init(label: "永久关闭", style: .normal), .close])
+                ) == 0 {
+                    AppSettings.shared.showPclMacPopup = false
+                }
+            }
         }
+        Aria2Manager.shared.checkAndDownloadAria2()
     }
     
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         LogStore.shared.save()
-        return .terminateNow
+        Task {
+            await Aria2Manager.shared.shutdown()
+            NSApplication.shared.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
     }
     
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

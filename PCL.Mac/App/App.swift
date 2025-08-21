@@ -45,6 +45,18 @@ struct WindowAccessor: NSViewRepresentable {
         DispatchQueue.main.async {
             if let window = nsView.window {
                 window.toggleFullScreen(nil)
+                if AppSettings.shared.showPclMacPopup {
+                    window.setContentSize(NSSize(width: 815, height: 465))
+                }
+                window.isOpaque = false
+                window.backgroundColor = NSColor.clear
+                window.styleMask = [.borderless, .miniaturizable, .resizable]
+                
+                if let contentView = window.contentView {
+                    contentView.wantsLayer = true
+                    contentView.layer?.cornerRadius = 10
+                    contentView.layer?.masksToBounds = true
+                }
             }
         }
         return nsView

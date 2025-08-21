@@ -14,11 +14,17 @@ struct DownloadView: View {
         Group {
             switch dataManager.router.getLast() {
             case .minecraftDownload(let showDownloadPage):
-                MinecraftDownloadView(currentDownloadPage: showDownloadPage ? .init(.init(displayName: "1.21.7"), {}) : nil)
-            case .modSearch:
-                ModSearchView()
+                MinecraftDownloadView(currentDownloadPage: showDownloadPage ? DownloadPage(.init(displayName: "1.21.8"), {}) : nil)
+            case .projectSearch(let type):
+                ProjectSearchView(type: type)
+                    .id(type)
             default:
                 Spacer()
+                    .onAppear {
+                        if dataManager.router.getLast() == .download {
+                            dataManager.router.append(.minecraftDownload(showDownloadPage: false))
+                        }
+                    }
             }
         }
         .onAppear {
@@ -30,7 +36,10 @@ struct DownloadView: View {
                         .padding(.leading, 12)
                         .padding(.top, 20)
                         .padding(.bottom, 4)
-                    MyListComponent(default: .minecraftDownload(showDownloadPage: false), cases: [.minecraftDownload(showDownloadPage: false)]) { type, isSelected in
+                    
+                    MyList(
+                        root: .download,
+                        cases: .constant([.minecraftDownload(showDownloadPage: false)])) { type, isSelected in
                         createListItemView(type)
                             .foregroundStyle(isSelected ? AnyShapeStyle(AppSettings.shared.theme.getTextStyle()) : AnyShapeStyle(Color("TextColor")))
                     }
@@ -41,7 +50,10 @@ struct DownloadView: View {
                         .padding(.leading, 12)
                         .padding(.top, 32)
                         .padding(.bottom, 4)
-                    MyListComponent(cases: [.modSearch]) { type, isSelected in
+                    MyList(
+                        cases: .constant([.projectSearch(type: .mod), .projectSearch(type: .resourcepack)]),
+                        animationIndex: 2
+                    ) { type, isSelected in
                         createListItemView(type)
                             .foregroundStyle(isSelected ? AnyShapeStyle(AppSettings.shared.theme.getTextStyle()) : AnyShapeStyle(Color("TextColor")))
                     }
@@ -53,32 +65,35 @@ struct DownloadView: View {
     }
     
     private func createListItemView(_ lastComponent: AppRoute) -> some View {
+        let imageName: String, text: String
         switch lastComponent {
         case .minecraftDownload:
-            return AnyView(
-                HStack {
-                    Image("GameDownloadIcon")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
-                    Text("游戏下载")
-                        .font(.custom("PCL English", size: 14))
-                }
-            )
-        case .modSearch:
-            return AnyView(
-                HStack {
-                    Image("ModDownloadIcon")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
-                    Text("Mod")
-                        .font(.custom("PCL English", size: 14))
-                }
-            )
+            imageName = "GameDownloadIcon"
+            text = "游戏下载"
+        case .projectSearch(let type):
+            switch type {
+            case .mod:
+                imageName = "ModDownloadIcon"
+            case .resourcepack:
+                imageName = "PictureIcon"
+            case .shader:
+                imageName = "ModDownloadIcon"
+            }
+            text = type.getName()
         default:
             return AnyView(EmptyView())
         }
+        
+        return AnyView(
+            HStack {
+                Image(imageName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                Text(text)
+                    .font(.custom("PCL English", size: 14))
+            }
+        )
     }
 }
 
@@ -94,7 +109,7 @@ struct RoundedButton<Content: View>: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: .infinity)
-                    .fill(Color(hex: 0x1370F3))
+                    .fill(AppSettings.shared.theme.getAccentColor())
             )
             .scaleEffect(isPressed ? 0.85 : 1.0)
             .animation(.easeInOut(duration: 0.2), value: isHovered)

@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftyJSON
 
-class Announcement: Identifiable {
+struct Announcement: Identifiable {
     @ObservedObject private var dataManager: DataManager = .shared
     
     public let id: UUID = .init()
@@ -26,40 +26,43 @@ class Announcement: Identifiable {
     }
     
     func createView(showHistoryButton: Bool = false) -> some View {
-        MyCardComponent(title: "公告 | \(title)") {
-            VStack(alignment: .leading, spacing: 10) {
-                ForEach(self.body) { body in
-                    let body: Body = body
-                    switch body {
-                    case .text(let text, let fontSize, let color):
-                        Text(text)
-                            .lineLimit(nil)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .foregroundStyle(color)
-                            .font(.custom("PCL English", size: CGFloat(fontSize)))
-                    case .image(let base64):
-                        Image(nsImage: NSImage(data: Data(base64Encoded: base64, options:.ignoreUnknownCharacters)!)!)
-                            .resizable()
-                            .scaledToFit()
+        MyCard(title: "公告 | \(title)") {
+            VStack {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(self.body) { body in
+                        let body: Body = body
+                        switch body {
+                        case .text(let text, let fontSize, let color):
+                            Text(text)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .foregroundStyle(color)
+                                .font(.custom("PCL English", size: CGFloat(fontSize)))
+                        case .image(let base64):
+                            Image(nsImage: NSImage(data: Data(base64Encoded: base64, options:.ignoreUnknownCharacters)!)!)
+                                .resizable()
+                                .scaledToFit()
+                        }
+                    }
+                    
+                    HStack {
+                        Spacer()
+                        Text("—— \(self.author) \(SharedConstants.shared.dateFormatter.string(from: self.time))")
+                            .foregroundStyle(Color(hex: 0x8C8C8C))
+                            .font(.custom("PCL English", size: 12))
                     }
                 }
-                
-                HStack {
-                    Spacer()
-                    Text("—— \(self.author) \(SharedConstants.shared.dateFormatter.string(from: self.time))")
-                        .foregroundStyle(Color(hex: 0x8C8C8C))
-                        .font(.custom("PCL English", size: 12))
-                }
-                
+                .padding()
                 if showHistoryButton {
-                    MyButtonComponent(text: "历史公告") {
+                    MyButton(text: "历史公告") {
                         self.dataManager.router.append(.announcementHistory)
                     }
-                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(height: 40)
+                    .padding(1)
                 }
             }
-            .padding()
         }
+        .cardId("announcement-\(title)-\(showHistoryButton)")
     }
 }
 

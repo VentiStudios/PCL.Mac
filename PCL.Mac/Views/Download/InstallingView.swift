@@ -17,7 +17,7 @@ struct InstallingView: View {
                 Spacer()
                 PanelView(
                     title: "总进度",
-                    value: tasks.totalFiles == -1 ? "未知" : String(format: "%.1f %%", tasks.getProgress() * 100)
+                    value: tasks.totalFiles < 0 ? "未知" : String(format: "%.1f %%", tasks.getProgress() * 100)
                 )
                 PanelView(
                     title: "下载速度",
@@ -25,7 +25,7 @@ struct InstallingView: View {
                 )
                 PanelView(
                     title: "剩余文件",
-                    value: String(describing: tasks.remainingFiles)
+                    value: tasks.remainingFiles < 0 ? "-" : String(describing: tasks.remainingFiles)
                 )
                 Spacer()
             }
@@ -55,7 +55,7 @@ struct InstallingView: View {
         HStack {
             VStack {
                 ForEach(tasks.getTasks()) { task in
-                    StaticMyCardComponent(title: task.getTitle()) {
+                    StaticMyCard(title: task.getTitle()) {
                         getEntries(task)
                     }
                     .padding()
@@ -77,11 +77,11 @@ struct InstallingView: View {
                     if state == .inprogress {
                         Text(String(format: "%.0f%%", task.currentStagePercentage * 100))
                             .font(.custom("PCL English", size: 14))
-                            .foregroundStyle(Color(hex: 0x1370F3))
+                            .foregroundStyle(AppSettings.shared.theme.getTextStyle())
                             .padding(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 10))
                     } else {
                         Image(state.getImageName())
-                            .foregroundStyle(Color(hex: 0x1370F3))
+                            .foregroundStyle(AppSettings.shared.theme.getTextStyle())
                             .padding(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 10))
                     }
                     Text(stage.getDisplayName())
@@ -103,9 +103,9 @@ private struct PanelView: View {
         VStack {
             Text(title)
                 .font(.custom("PCL English", size: 16))
-                .foregroundStyle(Color(hex: 0x1370F3))
+                .foregroundStyle(AppSettings.shared.theme.getTextStyle())
             Rectangle()
-                .fill(Color(hex: 0x1370F3))
+                .fill(AppSettings.shared.theme.getTextStyle())
                 .frame(width: 180, height: 2)
             Text(value)
                 .font(.custom("PCL English", size: 20))

@@ -12,7 +12,7 @@ fileprivate struct ProfileCard: View {
     let name: String
     let description: String
     let buttonName: String
-    let buttonUrl: String
+    let buttonURL: String
     
     var body: some View {
         HStack {
@@ -30,8 +30,8 @@ fileprivate struct ProfileCard: View {
                     .foregroundStyle(Color(hex: 0x8C8C8C))
             }
             Spacer()
-            MyButtonComponent(text: buttonName) {
-                NSWorkspace.shared.open(URL(string: buttonUrl)!)
+            MyButton(text: buttonName) {
+                NSWorkspace.shared.open(URL(string: buttonURL)!)
             }
             .frame(width: 160, height: 40)
         }
@@ -43,14 +43,14 @@ struct AboutView: View {
     @ObservedObject private var dataManager: DataManager = .shared
     var body: some View {
         ScrollView {
-            StaticMyCardComponent(index: 0, title: "关于") {
+            StaticMyCard(index: 0, title: "关于") {
                 VStack(spacing: 10) {
                     ProfileCard(
                         imageName: "LtCatt",
-                        name: "龙腾猫越",
+                        name: "龙腾猫跃",
                         description: "Plain Craft Launcher 的作者！",
                         buttonName: "赞助作者",
-                        buttonUrl: "https://afdian.com/a/LTCat"
+                        buttonURL: "https://afdian.com/a/LTCat"
                     )
                     
                     ProfileCard(
@@ -58,15 +58,15 @@ struct AboutView: View {
                         name: "YiZhiMCQiu | Minecraft-温迪",
                         description: "PCL.Mac 的作者",
                         buttonName: "进入主页",
-                        buttonUrl: "https://github.com/YiZhiMCQiu"
+                        buttonURL: "https://github.com/YiZhiMCQiu"
                     )
                     
                     ProfileCard(
                         imageName: "Icon",
                         name: "PCL.Mac",
-                        description: "当前版本：早期开发-\(SharedConstants.shared.branch)",
+                        description: "当前版本：\(SharedConstants.shared.version)-\(SharedConstants.shared.branch)",
                         buttonName: "查看源代码",
-                        buttonUrl: "https://github.com/PCL-Community/PCL-Mac"
+                        buttonURL: "https://github.com/PCL-Community/PCL-Mac"
                     )
                 }
                 .padding(.leading)
@@ -74,14 +74,14 @@ struct AboutView: View {
             }
             .padding()
             
-            StaticMyCardComponent(index: 1, title: "特别鸣谢") {
+            StaticMyCard(index: 1, title: "特别鸣谢") {
                 VStack(spacing: 10) {
                     ProfileCard(
                         imageName: "PCLCommunity",
                         name: "PCL Community",
                         description: "Plain Craft Launcher 非官方社区",
                         buttonName: "进入主页",
-                        buttonUrl: "https://pcl-community.github.io"
+                        buttonURL: "https://pclc.cc"
                     )
                     
                     ProfileCard(
@@ -89,7 +89,7 @@ struct AboutView: View {
                         name: "PCL.Proto",
                         description: "本项目的界面样式参考了 PCL.Proto，部分图标也来源于此",
                         buttonName: "GitHub 仓库",
-                        buttonUrl: "https://github.com/PCL-Community/PCL.Proto"
+                        buttonURL: "https://github.com/PCL-Community/PCL.Proto"
                     )
                 }
                 .padding(.leading)
@@ -97,17 +97,11 @@ struct AboutView: View {
             }
             .padding()
             
-            StaticMyCardComponent(index: 2, title: "许可与版权声明") {
+            StaticMyCard(index: 2, title: "许可与版权声明") {
                 VStack(spacing: 0) {
-                    ForEach(
-                        [
-                            (name: "Alamofire", license: "MIT", repo: "Alamofire/Alamofire"),
-                            (name: "SwiftyJSON", license: "MIT", repo: "SwiftyJSON/SwiftyJSON"),
-                            (name: "ZIPFoundation", license: "MIT", repo: "weichsel/ZIPFoundation")
-                        ]
-                        , id: \.name) { dependency in
-                            DependencyView(name: dependency.name, license: dependency.license, repo: dependency.repo)
-                        }
+                    DependencyView(name: "SwiftyJSON", license: "MIT", repo: "SwiftyJSON/SwiftyJSON")
+                    DependencyView(name: "ZIPFoundation", license: "MIT", repo: "weichsel/ZIPFoundation")
+                    DependencyView(name: "aria2", description: "作为外部分片下载器", license: "GNU GPL v2", repo: "aria2/aria2")
                 }
             }
             .padding()
@@ -117,15 +111,30 @@ struct AboutView: View {
     }
     
     struct DependencyView: View {
-        let name: String
-        let license: String
-        let repo: String
+        private let name: String
+        private let description: String
+        private let license: String
+        private let repo: String
+        
+        init(name: String, description: String = "", license: String, repo: String) {
+            self.name = name
+            self.description = description
+            self.license = license
+            self.repo = repo
+        }
         
         var body: some View {
-            MyListItemComponent {
+            MyListItem {
                 HStack {
                     VStack(alignment: .leading) {
-                        Text(name)
+                        HStack(spacing: 0) {
+                            Text(name)
+                            if !description.isEmpty {
+                                Text(" | \(description)")
+                                    .foregroundStyle(Color(hex: 0x8C8C8C))
+                            }
+                            Spacer()
+                        }
                         Text("\(license) | https://github.com/\(repo)")
                             .foregroundStyle(Color(hex: 0x8C8C8C))
                     }
@@ -133,7 +142,7 @@ struct AboutView: View {
                 }
                 .font(.custom("PCL English", size: 14))
                 .foregroundStyle(Color("TextColor"))
-                .padding()
+                .padding(8)
             }
         }
     }

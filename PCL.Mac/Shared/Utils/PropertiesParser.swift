@@ -8,9 +8,9 @@
 import Foundation
 
 public struct PropertiesParser {
-    public static func parse(fileUrl: URL) -> [String: String] {
-        guard let content = try? String(contentsOf: fileUrl, encoding: .utf8) else {
-            print("Error: 文件读取失败")
+    public static func parse(fileURL: URL) -> [String: String] {
+        guard let content = try? String(contentsOf: fileURL, encoding: .utf8) else {
+            err("文件读取失败")
             return [:]
         }
         

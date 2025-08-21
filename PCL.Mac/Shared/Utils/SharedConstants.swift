@@ -10,22 +10,25 @@ import Foundation
 public struct SharedConstants {
     public static let shared = SharedConstants()
     
-    public let applicationContentsUrl: URL
-    public let applicationResourcesUrl: URL
-    public let applicationLogUrl: URL
-    public let applicationSupportUrl: URL = .applicationSupportDirectory.appending(path: "PCL-Mac")
-    public let applicationTemperatureUrl: URL
+    public let applicationContentsURL: URL
+    public let applicationResourcesURL: URL
+    public let logURL: URL
+    public let applicationSupportURL: URL = .applicationSupportDirectory.appending(path: "PCL-Mac")
+    public let temperatureURL: URL
+    public let authlibInjectorURL: URL
     
     public let dateFormatter = DateFormatter()
     
     public let isDevelopment: Bool
+    public let version = "Beta 0.1.1"
     public let branch: String
     
     private init() {
-        self.applicationContentsUrl = Bundle.main.bundleURL.appending(path: "Contents")
-        self.applicationResourcesUrl = self.applicationContentsUrl.appending(path: "Resources")
-        self.applicationLogUrl = applicationSupportUrl.appending(path: "Logs").appending(path: "app.log")
-        self.applicationTemperatureUrl = applicationSupportUrl.appending(path: "Temp")
+        self.applicationContentsURL = Bundle.main.bundleURL.appending(path: "Contents")
+        self.applicationResourcesURL = self.applicationContentsURL.appending(path: "Resources")
+        self.logURL = applicationSupportURL.appending(path: "Logs").appending(path: "app.log")
+        self.temperatureURL = applicationSupportURL.appending(path: "Temp")
+        self.authlibInjectorURL = applicationSupportURL.appending(path: "authlib-injector.jar")
         
         self.dateFormatter.dateFormat = "yyyy/MM/dd HH:mm"
         self.dateFormatter.timeZone = TimeZone(identifier: "Asia/Shanghai")

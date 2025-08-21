@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Alamofire
 import SwiftyJSON
 
 public class AnnouncementManager: ObservableObject {
@@ -18,60 +17,29 @@ public class AnnouncementManager: ObservableObject {
     
     public func loadHistory() {
         history.removeAll()
-        AF.request(AnnouncementManager.root.appending(path: "latest.json"))
-            .responseData { response in
-                let latestNumber: Int
-                do {
-                    latestNumber = try JSON(data: response.data!)["number"].intValue
-                } catch {
-                    err("无法解析公告 JSON: \(error.localizedDescription)")
-                    return
-                }
-                
-                Task {
-                    for i in stride(from: latestNumber, through: max(latestNumber - 9, 0), by: -1) {
-                        let data: Data
-                        do {
-                            data = try await AF.request(AnnouncementManager.root.appending(path: "history").appending(path: "\(i).json"))
-                                .serializingResponse(using: .data).value
-                        } catch {
-                            err("无法发送请求: \(error.localizedDescription)")
-                            continue
-                        }
-                        
+        Task {
+            if let json = await Requests.get(AnnouncementManager.root.appending(path: "latest.json")).json {
+                let latestNumber = json["number"].intValue
+                for i in stride(from: latestNumber, through: max(latestNumber - 9, 0), by: -1) {
+                    if let json = await Requests.get(AnnouncementManager.root.appending(path: "history").appending(path: "\(i).json")).json {
                         await MainActor.run {
-                            do {
-                                self.history.append(.init(try JSON(data: data)))
-                            } catch {
-                                err("无法解析公告 JSON: \(error.localizedDescription)")
-                                return
-                            }
+                            self.history.append(.init(json))
                         }
                     }
                 }
             }
+        }
     }
     
     private init() {
-        AF.request(AnnouncementManager.root.appending(path: "latest.json"))
-            .responseData { response in
-                let latest: JSON
-                do {
-                    latest = try JSON(data: response.data!)
-                } catch {
-                    err("无法解析公告 JSON: \(error.localizedDescription)")
-                    return
-                }
-                
-                AF.request(AnnouncementManager.root.appending(path: latest["path"].stringValue))
-                    .responseData { response in
-                        do {
-                            self.latest = .init(try JSON(data: response.data!))
-                        } catch {
-                            err("无法解析公告 JSON: \(error.localizedDescription)")
-                            return
-                        }
+        Task {
+            if let json = await Requests.get(AnnouncementManager.root.appending(path: "latest.json")).json {
+                if let json = await Requests.get(AnnouncementManager.root.appending(path: json["path"].stringValue)).json {
+                    await MainActor.run {
+                        self.latest = .init(json)
                     }
+                }
             }
+        }
     }
 }
