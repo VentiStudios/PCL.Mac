@@ -48,7 +48,7 @@ public class MinecraftCrashHandler {
         try? FileManager.default.zipItem(at: tmp.root, to: destination, shouldKeepParent: false)
         debug("错误报告导出完成")
         try? FileManager.default.removeItem(at: launcher.logURL)
-        Util.clearTemp()
+        tmp.free()
     }
     
     private static func copyGameLogs(instance: MinecraftInstance, report: URL) {
