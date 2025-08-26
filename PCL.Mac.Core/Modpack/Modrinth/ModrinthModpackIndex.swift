@@ -49,7 +49,7 @@ public struct ModpackDependencies {
     public var minecraftVerison: MinecraftVersion { .init(displayName: minecraft) }
 }
 
-public struct ModrinthModpackIndex {
+public class ModrinthModpackIndex {
     public let name: String
     public let summary: String?
     public let version: String
@@ -60,7 +60,7 @@ public struct ModrinthModpackIndex {
         self.name = json["name"].stringValue
         self.summary = json["summary"].string
         self.version = json["versionId"].stringValue
-        self.files = json["files"].arrayValue.compactMap(ModpackFile.init(json:))
+        self.files = json["files"].arrayValue.compactMap(ModpackFile.init(json:)).filter { $0.isSupportedOnClient }
         self.dependencies = .init(json: json["dependencies"])
     }
 }

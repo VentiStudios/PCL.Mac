@@ -112,21 +112,8 @@ public class JavaInstallTask: InstallTask {
         }
     }
     
-    public override func getInstallStates() -> [InstallStage : InstallState] {
-        let allStages: [InstallStage] = [.javaDownload, .javaInstall]
-        var result: [InstallStage: InstallState] = [:]
-        var foundCurrent = false
-        for stage in allStages {
-            if foundCurrent {
-                result[stage] = .waiting
-            } else if self.stage == stage {
-                result[stage] = .inprogress
-                foundCurrent = true
-            } else {
-                result[stage] = .finished
-            }
-        }
-        return result
+    override func getInstallStages() -> [InstallStage] {
+        [.javaDownload, .javaInstall]
     }
 }
 

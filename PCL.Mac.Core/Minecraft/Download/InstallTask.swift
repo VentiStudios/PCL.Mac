@@ -13,6 +13,7 @@ public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
     @Published public var remainingFiles: Int = -1
     @Published public var totalFiles: Int = -1
     @Published public var currentStagePercentage: Double = 0
+    @Published var currentState: InstallState = .inprogress
     
     public let id: UUID = UUID()
     public var callback: (() -> Void)? = nil
@@ -26,7 +27,6 @@ public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
     }
     
     public func start() { }
-    public func getInstallStates() -> [InstallStage : InstallState] { [:] }
     public func getTitle() -> String { "" }
     public func onComplete(_ callback: @escaping () -> Void) {
         self.callback = callback
@@ -42,6 +42,25 @@ public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
     
     public func getProgress() -> Double {
         Double(totalFiles - remainingFiles) / Double(totalFiles)
+    }
+    
+    func getInstallStages() -> [InstallStage] { [] }
+    
+    public func getInstallStates() -> [InstallStage : InstallState] {
+        let allStages: [InstallStage] = getInstallStages()
+        var result: [InstallStage: InstallState] = [:]
+        var foundCurrent = false
+        for stage in allStages {
+            if foundCurrent {
+                result[stage] = .waiting
+            } else if self.stage == stage {
+                result[stage] = currentState
+                foundCurrent = true
+            } else {
+                result[stage] = .finished
+            }
+        }
+        return result
     }
     
     public func complete() {
@@ -96,7 +115,7 @@ public class InstallTasks: ObservableObject, Identifiable, Hashable, Equatable {
     }
     
     public func getTasks() -> [InstallTask] {
-        let order = ["minecraft", "fabric", "forge", "neoforge", "customFile"]
+        let order = ["minecraft", "fabric", "forge", "neoforge", "customFile", "modpack"]
         return order.compactMap { tasks[$0] }
     }
     
@@ -142,7 +161,6 @@ public class MinecraftInstallTask: InstallTask {
     public let minecraftDirectory: MinecraftDirectory
     public let startTask: (MinecraftInstallTask) async throws -> Void
     public let architecture: Architecture
-    @Published private var currentState: InstallState = .inprogress
     
     public init(minecraftVersion: MinecraftVersion, minecraftDirectory: MinecraftDirectory, name: String, architecture: Architecture = .system, startTask: @escaping (MinecraftInstallTask) async throws -> Void) {
         self.minecraftVersion = minecraftVersion
@@ -158,8 +176,8 @@ public class MinecraftInstallTask: InstallTask {
                 try await startTask(self)
                 complete()
             } catch {
-                await PopupManager.shared.show(.init(.error, "无法安装 Minecraft", "\(error.localizedDescription)\n若要反馈此问题，你可以进入设置 > 其它 > 打开日志，将选中的文件发给别人。", [.ok]))
                 err("无法安装 Minecraft: \(error.localizedDescription)")
+                await PopupManager.shared.show(.init(.error, "无法安装 Minecraft", "\(error.localizedDescription)\n若要反馈此问题，你可以进入设置 > 其它 > 打开日志，将选中的文件发给别人，而不是发送本页面的照片或截图。", [.ok]))
                 await MainActor.run {
                     currentState = .failed
                     DataManager.shared.inprogressInstallTasks = nil
@@ -169,21 +187,8 @@ public class MinecraftInstallTask: InstallTask {
         }
     }
     
-    public override func getInstallStates() -> [InstallStage : InstallState] {
-        let allStages: [InstallStage] = [.clientJson, .clientIndex, .clientJar, .clientResources, .clientLibraries, .natives]
-        var result: [InstallStage: InstallState] = [:]
-        var foundCurrent = false
-        for stage in allStages {
-            if foundCurrent {
-                result[stage] = .waiting
-            } else if self.stage == stage {
-                result[stage] = currentState
-                foundCurrent = true
-            } else {
-                result[stage] = .finished
-            }
-        }
-        return result
+    override func getInstallStages() -> [InstallStage] {
+        [.clientJson, .clientIndex, .clientJar, .clientResources, .clientLibraries, .natives]
     }
     
     public override func getTitle() -> String {
@@ -333,6 +338,7 @@ public class CustomFileDownloadTask: InstallTask {
 
 // MARK: - 安装进度定义
 public enum InstallStage: Int {
+    // Minecraft 安装
     case before = 0
     case clientJson = 1
     case clientIndex = 2
@@ -342,14 +348,22 @@ public enum InstallStage: Int {
     case natives = 6
     case end = 7
     
+    // Mod 加载器安装
     case installFabric = 1000
     case installForge = 1001
     case installNeoforge = 1002
     
+    // 自定义文件下载
     case customFile = 2000
     
+    // Modrinth 资源下载
     case resources = 3000
     
+    // 整合包安装
+    case modpackFilesDownload = 3050
+    case applyOverrides = 3051
+    
+    // Java 安装
     case javaDownload = 4000
     case javaInstall = 4001
     
@@ -367,6 +381,8 @@ public enum InstallStage: Int {
         case .natives: "下载本地库文件"
         case .customFile: "下载自定义文件"
         case .resources: "下载资源"
+        case .modpackFilesDownload: "下载整合包文件"
+        case .applyOverrides: "应用整合包更改"
         case .end: "结束"
         case .javaDownload: "下载 Java"
         case .javaInstall: "安装 Java"
