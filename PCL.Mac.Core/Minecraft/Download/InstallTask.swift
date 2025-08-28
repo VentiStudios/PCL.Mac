@@ -47,7 +47,7 @@ public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
     func getInstallStages() -> [InstallStage] { [] }
     
     public func getInstallStates() -> [InstallStage : InstallState] {
-        let allStages: [InstallStage] = getInstallStages()
+        let allStages: [InstallStage] = [.before] + getInstallStages()
         var result: [InstallStage: InstallState] = [:]
         var foundCurrent = false
         for stage in allStages {
@@ -60,6 +60,7 @@ public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
                 result[stage] = .finished
             }
         }
+        result.removeValue(forKey: .before)
         return result
     }
     
@@ -67,10 +68,6 @@ public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
         log("下载任务结束")
         self.updateStage(.end)
         DispatchQueue.main.async {
-            DataManager.shared.inprogressInstallTasks = nil
-            if case .installing(_) = DataManager.shared.router.getLast() {
-                DataManager.shared.router.removeLast()
-            }
             self.callback?()
         }
     }
@@ -84,6 +81,7 @@ public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
 
 public class InstallTasks: ObservableObject, Identifiable, Hashable, Equatable {
     @Published public var tasks: [String : InstallTask]
+    private var remainingTasks: Int
     
     public let id: UUID = .init()
     public static func == (lhs: InstallTasks, rhs: InstallTasks) -> Bool {
@@ -121,11 +119,13 @@ public class InstallTasks: ObservableObject, Identifiable, Hashable, Equatable {
     
     public func addTask(key: String, task: InstallTask) {
         tasks[key] = task
+        self.remainingTasks += 1
         subscribeToTask(task)
     }
     
     init(_ tasks: [String : InstallTask]) {
         self.tasks = tasks
+        self.remainingTasks = tasks.count
         subscribeToTasks()
     }
     
@@ -141,6 +141,15 @@ public class InstallTasks: ObservableObject, Identifiable, Hashable, Equatable {
 
     private func subscribeToTask(_ task: InstallTask) {
         let cancellable = task.objectWillChange.sink { [weak self] _ in
+            if task.stage == .end {
+                self?.remainingTasks -= 1
+                if self?.remainingTasks == 0 {
+                    DataManager.shared.inprogressInstallTasks = nil
+                    if case .installing(_) = DataManager.shared.router.getLast() {
+                        DataManager.shared.router.removeLast()
+                    }
+                }
+            }
             self?.objectWillChange.send()
         }
         cancellables.append(cancellable)

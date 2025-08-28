@@ -139,6 +139,18 @@ public class Util {
     public static func replaceRoot(url: any URLConvertible, root: String, target: String) -> any URLConvertible {
         return URL(string: url.url.absoluteString.replacingOccurrences(of: root, with: target))!
     }
+    
+    public static func getAllFiles(in url: URL) throws -> [URL] {
+        var files: [URL] = []
+        let enumerator = try FileManager.default.enumerator(at: url, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles, .skipsPackageDescendants]).unwrap("无法创建 enumerator")
+        for case let url as URL in enumerator {
+            let resourceValues = try url.resourceValues(forKeys: [.isDirectoryKey])
+            if resourceValues.isDirectory == false {
+                files.append(url)
+            }
+        }
+        return files
+    }
 }
 
 public struct MavenCoordinate {

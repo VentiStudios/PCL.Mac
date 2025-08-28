@@ -70,12 +70,29 @@ public class ModrinthModpackImporter {
                 modpackInstallTask.start()
             }
             
-            DataManager.shared.inprogressInstallTasks = installTasks
             return installTasks
         } catch {
             temp.free()
             throw error
         }
+    }
+    
+    public static func checkModpack(_ url: URL) -> Result<Void, ModpackCheckError> {
+        let archive: Archive
+        do {
+            archive = try Archive(url: url, accessMode: .read)
+        } catch {
+            return .failure(.zipFormatError)
+        }
+        if (!ArchiveUtil.hasEntry(archive: archive, name: "modrinth.index.json")) {
+            return .failure(.unsupported)
+        }
+        
+        return .success(())
+    }
+    
+    public enum ModpackCheckError: Error {
+        case zipFormatError, unsupported
     }
 }
 
@@ -93,24 +110,30 @@ private class ModpackInstallTask: InstallTask {
     override func getTitle() -> String { "Modrinth 整合包安装：\(index.name)" }
     
     override func start() {
+        totalFiles += index.files.count
+        remainingFiles += index.files.count
         Task {
             do {
                 updateStage(.modpackFilesDownload)
                 try await MultiFileDownloader(
+                    task: self,
                     urls: index.files.map { $0.downloadURL },
                     destinations: index.files.map { instanceURL.appending(path: $0.path )}
                 ).start()
                 
                 updateStage(.applyOverrides)
                 let overridesURL = temp.getURL(path: "overrides")
-                let files = try FileManager.default.contentsOfDirectory(at: temp.getURL(path: "overrides"), includingPropertiesForKeys: nil)
-                
+                let files = try Util.getAllFiles(in: overridesURL)
+                let step = 1.0 / Double(files.count)
                 for url in files {
                     let relative = url.pathComponents.dropFirst(overridesURL.pathComponents.count).joined(separator: "/")
                     let dest = overridesURL.appending(path: relative)
                     try? FileManager.default.createDirectory(at: dest.parent(), withIntermediateDirectories: true)
                     try? FileManager.default.copyItem(at: dest, to: instanceURL.appending(path: relative))
                     log("\(relative) 拷贝完成")
+                    await MainActor.run {
+                        currentStagePercentage += step
+                    }
                 }
                 complete()
             } catch {
@@ -123,5 +146,9 @@ private class ModpackInstallTask: InstallTask {
             }
             temp.free()
         }
+    }
+    
+    override func getInstallStages() -> [InstallStage] {
+        [.modpackFilesDownload, .applyOverrides]
     }
 }
