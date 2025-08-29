@@ -18,7 +18,7 @@ public class ModrinthModpackImporter {
         self.modpackURL = modpackURL
     }
     
-    public func createInstallTasks() throws -> InstallTasks {
+    public func createInstallTasks() throws -> NewInstallTasks {
         let temp = TemperatureDirectory(name: "ModpackImport")
         do {
             // 解压整合包
@@ -43,7 +43,7 @@ public class ModrinthModpackImporter {
             } else {
                 try? FileManager.default.createDirectory(at: instanceURL, withIntermediateDirectories: true)
             }
-            let installTasks = InstallTasks([:])
+            let installTasks = NewInstallTasks([:])
             
             // 添加 Minecraft 安装任务
             let minecraftInstallTask = MinecraftInstaller.createTask(
@@ -59,16 +59,14 @@ public class ModrinthModpackImporter {
             } else if index.dependencies.requiresQuilt {
                 throw MyLocalizedError(reason: "不受支持的加载器: Quilt")
             } else if index.dependencies.requiresForge {
-                try installTasks.addTask(key: "forge", task: ForgeInstallTask(forgeVersion: index.dependencies.forge.unwrap()))
+                try installTasks.addTask(key: "forge", task: ForgeInstallTask(task: minecraftInstallTask, forgeVersion: index.dependencies.forge.unwrap()))
             } else if index.dependencies.requiresNeoforge {
                 try installTasks.addTask(key: "neoforge", task: NeoforgeInstallTask(neoforgeVersion: index.dependencies.neoforge.unwrap()))
             }
             
             let modpackInstallTask = ModpackInstallTask(instanceURL: instanceURL, index: index, temp: temp)
             installTasks.addTask(key: "modpack", task: modpackInstallTask)
-            minecraftInstallTask.onComplete {
-                modpackInstallTask.start()
-            }
+            minecraftInstallTask.addSubTask(task: modpackInstallTask)
             
             return installTasks
         } catch {
@@ -96,7 +94,7 @@ public class ModrinthModpackImporter {
     }
 }
 
-private class ModpackInstallTask: InstallTask {
+private class ModpackInstallTask: NewInstallTask {
     private let instanceURL: URL
     private let index: ModrinthModpackIndex
     private let temp: TemperatureDirectory
@@ -109,46 +107,34 @@ private class ModpackInstallTask: InstallTask {
     
     override func getTitle() -> String { "Modrinth 整合包安装：\(index.name)" }
     
-    override func start() {
-        totalFiles += index.files.count
+    override func startTask() async throws {
+        defer { temp.free() }
         remainingFiles += index.files.count
-        Task {
-            do {
-                updateStage(.modpackFilesDownload)
-                try await MultiFileDownloader(
-                    task: self,
-                    urls: index.files.map { $0.downloadURL },
-                    destinations: index.files.map { instanceURL.appending(path: $0.path )}
-                ).start()
-                
-                updateStage(.applyOverrides)
-                let overridesURL = temp.getURL(path: "overrides")
-                let files = try Util.getAllFiles(in: overridesURL)
-                let step = 1.0 / Double(files.count)
-                for url in files {
-                    let relative = url.pathComponents.dropFirst(overridesURL.pathComponents.count).joined(separator: "/")
-                    let dest = overridesURL.appending(path: relative)
-                    try? FileManager.default.createDirectory(at: dest.parent(), withIntermediateDirectories: true)
-                    try? FileManager.default.copyItem(at: dest, to: instanceURL.appending(path: relative))
-                    log("\(relative) 拷贝完成")
-                    await MainActor.run {
-                        currentStagePercentage += step
-                    }
-                }
-                complete()
-            } catch {
-                err("无法安装整合包: \(error.localizedDescription)")
-                await PopupManager.shared.show(.init(.error, "无法安装整合包", "\(error.localizedDescription)\n若要反馈此问题，你可以进入设置 > 其它 > 打开日志，将选中的文件发给别人，而不是发送本页面的照片或截图。", [.ok]))
-                await MainActor.run {
-                    currentState = .failed
-                    DataManager.shared.inprogressInstallTasks = nil
-                }
+        updateStage(.modpackFilesDownload)
+        try await MultiFileDownloader(
+            task: self,
+            urls: index.files.map { $0.downloadURL },
+            destinations: index.files.map { instanceURL.appending(path: $0.path )}
+        ).start()
+        
+        updateStage(.applyOverrides)
+        let overridesURL = temp.getURL(path: "overrides")
+        let files = try Util.getAllFiles(in: overridesURL)
+        let step = 1.0 / Double(files.count)
+        for url in files {
+            let relative = url.pathComponents.dropFirst(overridesURL.pathComponents.count).joined(separator: "/")
+            let dest = overridesURL.appending(path: relative)
+            try? FileManager.default.createDirectory(at: dest.parent(), withIntermediateDirectories: true)
+            try? FileManager.default.copyItem(at: dest, to: instanceURL.appending(path: relative))
+            log("\(relative) 拷贝完成")
+            await MainActor.run {
+                currentStageProgress += step
             }
-            temp.free()
         }
+        complete()
     }
     
-    override func getInstallStages() -> [InstallStage] {
+    override func getStages() -> [InstallStage] {
         [.modpackFilesDownload, .applyOverrides]
     }
 }

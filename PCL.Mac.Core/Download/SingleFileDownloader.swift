@@ -10,7 +10,7 @@ import Foundation
 
 public class SingleFileDownloader {
     public static func download(
-        task: InstallTask? = nil,
+        task: NewInstallTask? = nil,
         url: URL,
         destination: URL,
         replaceMethod: ReplaceMethod = .skip,
@@ -77,7 +77,7 @@ public class SingleFileDownloader {
                 if now - lastProgressReportTime >= 0.1 {
                     let downloadProgress = Double(received) / Double(expectedLength)
                     await MainActor.run {
-                        task?.currentStagePercentage = downloadProgress
+                        task?.currentStageProgress = downloadProgress
                         progress?(downloadProgress)
                     }
                     lastProgressReportTime = now

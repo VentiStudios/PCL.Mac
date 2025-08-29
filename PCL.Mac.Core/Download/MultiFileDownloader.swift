@@ -29,7 +29,7 @@ public struct DownloadItem {
 }
 
 public class MultiFileDownloader {
-    private let task: InstallTask?
+    private let task: NewInstallTask?
     private let items: [DownloadItem]
     private let concurrentLimit: Int
     private let replaceMethod: ReplaceMethod
@@ -39,7 +39,7 @@ public class MultiFileDownloader {
     private var finishedCount: Int = 0
     
     public convenience init(
-        task: InstallTask? = nil,
+        task: NewInstallTask? = nil,
         urls: [URL],
         destinations: [URL],
         concurrentLimit: Int = 16,
@@ -56,7 +56,7 @@ public class MultiFileDownloader {
     }
     
     public init(
-        task: InstallTask? = nil,
+        task: NewInstallTask? = nil,
         items: [DownloadItem],
         concurrentLimit: Int = 16,
         replaceMethod: ReplaceMethod = .skip,
@@ -87,7 +87,7 @@ public class MultiFileDownloader {
                     if Task.isCancelled { break }
                     await MainActor.run {
                         progress?(self.totalProgress / Double(self.total), self.finishedCount)
-                        task?.currentStagePercentage = self.totalProgress / Double(self.total)
+                        task?.currentStageProgress = self.totalProgress / Double(self.total)
                     }
                 }
             }
@@ -122,7 +122,7 @@ public class MultiFileDownloader {
         
         await MainActor.run {
             progress?(self.totalProgress / Double(self.total), self.finishedCount)
-            task?.currentStagePercentage = self.totalProgress / Double(self.total)
+            task?.currentStageProgress = self.totalProgress / Double(self.total)
         }
     }
     
