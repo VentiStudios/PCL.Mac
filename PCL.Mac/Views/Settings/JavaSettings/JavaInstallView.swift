@@ -102,10 +102,14 @@ struct JavaPackageView: View {
                         .foregroundStyle(AppSettings.shared.theme.getTextStyle())
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            let task = JavaInstallTask(package: package)
-                            DataManager.shared.inprogressInstallTasks = .single(task)
-                            task.start()
-                            hint("开始安装 Java \(package.versionString)")
+                            let tasks: InstallTasks = .single(JavaInstallTask(package: package))
+                            DataManager.shared.inprogressInstallTasks = tasks
+                            tasks.startAll { result in
+                                switch result {
+                                case .success(_): hint("\(package.type.rawValue.uppercased()) \(package.versionString) 安装成功！", .finish)
+                                case .failure(let failure): hint("无法安装 Java：\(failure.localizedDescription)", .critical)
+                                }
+                            }
                         }
                 }
             }

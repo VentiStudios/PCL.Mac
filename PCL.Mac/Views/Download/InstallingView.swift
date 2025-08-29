@@ -18,7 +18,7 @@ struct InstallingView: View {
                 Spacer()
                 PanelView(
                     title: "总进度",
-                    value: tasks.totalFiles < 0 ? "未知" : String(format: "%.1f %%", tasks.getProgress() * 100)
+                    value: String(format: "%.1f %%", tasks.getProgress() * 100)
                 )
                 PanelView(
                     title: "下载速度",
@@ -76,7 +76,7 @@ struct InstallingView: View {
             ForEach(Array(task.getInstallStates()).sorted(by: { $0.key.rawValue < $1.key.rawValue }), id: \.key) { stage, state in
                 HStack {
                     if state == .inprogress {
-                        Text(String(format: "%.0f%%", task.currentStagePercentage * 100))
+                        Text(String(format: "%.0f%%", task.currentStageProgress * 100))
                             .font(.custom("PCL English", size: 14))
                             .foregroundStyle(AppSettings.shared.theme.getTextStyle())
                             .padding(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 10))

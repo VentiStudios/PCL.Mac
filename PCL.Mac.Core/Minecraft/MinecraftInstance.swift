@@ -38,16 +38,16 @@ public class MinecraftInstance: Identifiable, Equatable, Hashable {
         lhs.id == rhs.id
     }
     
-    public static func create(_ minecraftDirectory: MinecraftDirectory, _ name: String, config: MinecraftConfig? = nil) -> MinecraftInstance? {
-        create(minecraftDirectory, minecraftDirectory.versionsURL.appending(path: name), config: config)
+    public static func create(_ directory: MinecraftDirectory, _ name: String, config: MinecraftConfig? = nil) -> MinecraftInstance? {
+        create(directory.versionsURL.appending(path: name), config: config)
     }
     
-    public static func create(_ minecraftDirectory: MinecraftDirectory, _ runningDirectory: URL, config: MinecraftConfig? = nil) -> MinecraftInstance? {
+    public static func create(_ runningDirectory: URL, config: MinecraftConfig? = nil) -> MinecraftInstance? {
         if let cached = cache[runningDirectory] {
             return cached
         }
         
-        let instance: MinecraftInstance = .init(minecraftDirectory: minecraftDirectory, runningDirectory: runningDirectory, config: config)
+        let instance: MinecraftInstance = .init(runningDirectory: runningDirectory, config: config)
         if instance.setup() {
             cache[runningDirectory] = instance
             return instance
@@ -64,9 +64,9 @@ public class MinecraftInstance: Identifiable, Equatable, Hashable {
     
 
     
-    private init(minecraftDirectory: MinecraftDirectory, runningDirectory: URL, config: MinecraftConfig? = nil) {
+    private init(runningDirectory: URL, config: MinecraftConfig? = nil) {
         self.runningDirectory = runningDirectory
-        self.minecraftDirectory = minecraftDirectory
+        self.minecraftDirectory = .init(rootURL: runningDirectory.parent().parent(), name: nil)
         self.configPath = runningDirectory.appending(path: ".PCL_Mac.json")
         self.config = config
     }
@@ -188,10 +188,8 @@ public class MinecraftInstance: Identifiable, Equatable, Hashable {
         
         if !config.skipResourcesCheck && !launchOptions.skipResourceCheck {
             log("正在进行资源完整性检查")
-            await withCheckedContinuation { continuation in
-                let task = MinecraftInstaller.createCompleteTask(self, continuation.resume)
-                task.start()
-            }
+            let task = MinecraftInstaller.createCompleteTask(self)
+            try? await task.start()
             log("资源完整性检查完成")
         }
         
@@ -225,7 +223,7 @@ public class MinecraftInstance: Identifiable, Equatable, Hashable {
     }
     
     @discardableResult
-    private func loadManifest() -> Bool {
+    public func loadManifest() -> Bool {
         do {
             let manifestPath = runningDirectory.appending(path: runningDirectory.lastPathComponent + ".json")
             

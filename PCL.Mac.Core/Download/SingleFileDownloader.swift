@@ -10,7 +10,7 @@ import Foundation
 
 public class SingleFileDownloader {
     public static func download(
-        task: NewInstallTask? = nil,
+        task: InstallTask? = nil,
         url: URL,
         destination: URL,
         replaceMethod: ReplaceMethod = .skip,

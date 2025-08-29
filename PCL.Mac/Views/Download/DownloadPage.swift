@@ -116,16 +116,14 @@ struct DownloadPage: View {
                         if DataManager.shared.inprogressInstallTasks != nil { return }
                         
                         if let loader {
-                            let taskConstructor: ((String) -> InstallTask)? =
+                            let instanceURL = AppSettings.shared.currentMinecraftDirectory!.versionsURL.appending(path: name)
+                            let task: InstallTask? =
                             switch loader.loader {
-                            case .fabric: FabricInstallTask.init(loaderVersion:)
-                            case .forge: ForgeInstallTask.init(forgeVersion:)
-                            case .neoforge: NeoforgeInstallTask.init(neoforgeVersion:)
+                            case .fabric: FabricInstallTask(instanceURL: instanceURL, loaderVersion: loader.version)
+                            case .forge, .neoforge: ForgeInstallTask(instanceURL: instanceURL, loaderVersion: loader.version, isNeoforge: loader.loader == .neoforge)
                             default: nil
                             }
-                            if let taskConstructor {
-                                tasks.addTask(key: loader.loader.rawValue, task: taskConstructor(loader.version))
-                            }
+                            tasks.addTask(key: loader.loader.rawValue, task: task!)
                         }
                         
                         if let task = tasks.tasks["minecraft"] as? MinecraftInstallTask {
@@ -140,7 +138,14 @@ struct DownloadPage: View {
                         
                         DataManager.shared.inprogressInstallTasks = self.tasks
                         DataManager.shared.router.append(.installing(tasks: tasks))
-                        self.tasks.tasks["minecraft"]!.start()
+                        tasks.startAll { result in
+                            switch result {
+                            case .success(_):
+                                hint("下载完成！", .finish)
+                            case .failure(let failure):
+                                PopupManager.shared.show(.init(.error, "Minecraft 安装失败", "\(failure.localizedDescription)\n若要寻求帮助，请进入设置 > 其它 > 打开日志，将选中的文件发给别人，而不是发送此页面的照片或截图。", [.ok]))
+                            }
+                        }
                     }
                     .foregroundStyle(.white)
                     .padding()

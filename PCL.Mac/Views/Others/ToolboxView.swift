@@ -74,9 +74,14 @@ struct ToolboxView: View {
                                 return
                             }
                             
-                            let task = CustomFileDownloadTask(url: url, destination: settings.customFilesSaveURL.appending(path: fileName))
-                            DataManager.shared.inprogressInstallTasks = .single(task, key: "customFile")
-                            task.start()
+                            let tasks: InstallTasks = .single(CustomFileDownloadTask(url: url, destination: settings.customFilesSaveURL.appending(path: fileName)))
+                            DataManager.shared.inprogressInstallTasks = tasks
+                            tasks.startAll { result in
+                                switch result {
+                                case .success(_): hint("\(fileName) 下载成功！", .finish)
+                                case .failure(let failure): PopupManager.shared.show(.init(.error, "自定义文件下载失败", failure.localizedDescription, [.ok]))
+                                }
+                            }
                             hint("开始下载 \(fileName)")
                         }
                         .frame(width: 140)

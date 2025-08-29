@@ -11,9 +11,9 @@ import Combine
 public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
     @Published public var stage: InstallStage = .before
     @Published public var remainingFiles: Int = -1
-    @Published public var totalFiles: Int = -1
-    @Published public var currentStagePercentage: Double = 0
-    @Published var currentState: InstallState = .inprogress
+    @Published public var currentStageProgress: Double = 0
+    @Published var currentStageState: InstallState = .inprogress
+    @Published var completedStages: Int = 0
     
     public let id: UUID = UUID()
     public var callback: (() -> Void)? = nil
@@ -26,35 +26,45 @@ public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
         hasher.combine(id)
     }
     
-    public func start() { }
+    /// 任务开始函数
+    /// 不应在其中调用 complete()
+    public func startTask() async throws { }
     public func getTitle() -> String { "" }
-    public func onComplete(_ callback: @escaping () -> Void) {
-        self.callback = callback
-    }
+    func getStages() -> [InstallStage] { [] }
+    func wrapError(error: Error) -> Error { error }
     
-    public func updateStage(_ stage: InstallStage) {
-        debug("切换阶段: \(stage.getDisplayName())")
-        DispatchQueue.main.async {
-            self.stage = stage
-            self.currentStagePercentage = 0
+    public final func start() async throws {
+        defer { complete() }
+        do {
+            try await startTask()
+        } catch {
+            setState(.failed)
+            throw error
         }
     }
     
-    public func getProgress() -> Double {
-        Double(totalFiles - remainingFiles) / Double(totalFiles)
+    public final func onComplete(_ callback: @escaping () -> Void) {
+        self.callback = callback
     }
     
-    func getInstallStages() -> [InstallStage] { [] }
+    public final func setStage(_ stage: InstallStage) {
+        debug("切换阶段: \(stage.getDisplayName())")
+        DispatchQueue.main.async {
+            self.stage = stage
+            self.currentStageProgress = 0
+            self.completedStages += 1
+        }
+    }
     
-    public func getInstallStates() -> [InstallStage : InstallState] {
-        let allStages: [InstallStage] = [.before] + getInstallStages()
+    public final func getInstallStates() -> [InstallStage : InstallState] {
+        let allStages: [InstallStage] = [.before] + getStages()
         var result: [InstallStage: InstallState] = [:]
         var foundCurrent = false
         for stage in allStages {
             if foundCurrent {
                 result[stage] = .waiting
             } else if self.stage == stage {
-                result[stage] = currentState
+                result[stage] = currentStageState
                 foundCurrent = true
             } else {
                 result[stage] = .finished
@@ -64,17 +74,25 @@ public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
         return result
     }
     
-    public func complete() {
-        log("下载任务结束")
-        self.updateStage(.end)
+    public final func completeOneFile() {
         DispatchQueue.main.async {
-            self.callback?()
+            self.remainingFiles -= 1
         }
     }
     
-    public func completeOneFile() {
+    final func setState(_ newState: InstallState) { DispatchQueue.main.async { self.currentStageState = newState } }
+    
+    final func setRemainingFiles(_ value: Int) { DispatchQueue.main.async { self.remainingFiles = value } }
+    
+    final func setProgress(_ value: Double) { DispatchQueue.main.async { self.currentStageProgress = value} }
+    
+    final func increaseProgress(_ value: Double) { setProgress(currentStageProgress + value) }
+    
+    private final func complete() {
+        log("任务 \(getTitle()) 结束")
+        self.setStage(.end)
         DispatchQueue.main.async {
-            self.remainingFiles -= 1
+            self.callback?()
         }
     }
 }
@@ -92,12 +110,6 @@ public class InstallTasks: ObservableObject, Identifiable, Hashable, Equatable {
         hasher.combine(tasks)
     }
     
-    public var totalFiles: Int {
-        var totalFiles = 0
-        tasks.values.forEach { totalFiles += $0.totalFiles }
-        return totalFiles
-    }
-    
     public var remainingFiles: Int {
         var remainingFiles = 0
         tasks.values.forEach { remainingFiles += $0.remainingFiles }
@@ -106,10 +118,11 @@ public class InstallTasks: ObservableObject, Identifiable, Hashable, Equatable {
     
     public func getProgress() -> Double {
         var progress: Double = 0
+        
         for task in tasks.values {
-            progress += task.getProgress()
+            progress += Double(task.completedStages) + task.currentStageProgress
         }
-        return progress / Double(tasks.count)
+        return progress / Double(tasks.values.map { $0.getStages().count }.reduce(0, +) + 1)
     }
     
     public func getTasks() -> [InstallTask] {
@@ -155,54 +168,28 @@ public class InstallTasks: ObservableObject, Identifiable, Hashable, Equatable {
         cancellables.append(cancellable)
     }
     
-    public static func single(_ task: InstallTask, key: String = "minecraft") -> InstallTasks { .init([key : task]) }
-    
-    public static func empty() -> InstallTasks { .init([:]) }
-}
-
-// MARK: - Minecraft 安装任务定义
-public class MinecraftInstallTask: InstallTask {
-    public var manifest: ClientManifest?
-    public var assetIndex: AssetIndex?
-    public var name: String
-    public var versionURL: URL { minecraftDirectory.versionsURL.appending(path: name) }
-    public let minecraftVersion: MinecraftVersion
-    public let minecraftDirectory: MinecraftDirectory
-    public let startTask: (MinecraftInstallTask) async throws -> Void
-    public let architecture: Architecture
-    
-    public init(minecraftVersion: MinecraftVersion, minecraftDirectory: MinecraftDirectory, name: String, architecture: Architecture = .system, startTask: @escaping (MinecraftInstallTask) async throws -> Void) {
-        self.minecraftVersion = minecraftVersion
-        self.minecraftDirectory = minecraftDirectory
-        self.name = name
-        self.startTask = startTask
-        self.architecture = architecture
-    }
-    
-    public override func start() {
+    public func startAll(callback: @escaping (Result<Void, Error>) -> Void) {
         Task {
-            do {
-                try await startTask(self)
-                complete()
-            } catch {
-                err("无法安装 Minecraft: \(error.localizedDescription)")
-                await PopupManager.shared.show(.init(.error, "无法安装 Minecraft", "\(error.localizedDescription)\n若要反馈此问题，你可以进入设置 > 其它 > 打开日志，将选中的文件发给别人，而不是发送本页面的照片或截图。", [.ok]))
-                await MainActor.run {
-                    currentState = .failed
-                    DataManager.shared.inprogressInstallTasks = nil
-                    try? FileManager.default.removeItem(at: versionURL)
+            for task in getTasks() {
+                do {
+                    try await task.start()
+                } catch {
+                    err("任务 \(task.getTitle()) 执行失败: \(error.localizedDescription)")
+                    await MainActor.run {
+                        callback(.failure(error))
+                    }
+                    return
                 }
+            }
+            await MainActor.run {
+                callback(.success(()))
             }
         }
     }
     
-    override func getInstallStages() -> [InstallStage] {
-        [.clientJson, .clientIndex, .clientJar, .clientResources, .clientLibraries, .natives]
-    }
+    public static func single(_ task: InstallTask, key: String = "minecraft") -> InstallTasks { .init([key : task]) }
     
-    public override func getTitle() -> String {
-        "\(minecraftVersion.displayName) 安装"
-    }
+    public static func empty() -> InstallTasks { .init([:]) }
 }
 
 public class CustomFileDownloadTask: InstallTask {
@@ -214,7 +201,6 @@ public class CustomFileDownloadTask: InstallTask {
         self.url = url
         self.destination = destination
         super.init()
-        self.totalFiles = 1
         self.remainingFiles = 1
     }
     
@@ -222,28 +208,16 @@ public class CustomFileDownloadTask: InstallTask {
         "自定义下载：\(destination.lastPathComponent)"
     }
     
-    public override func getProgress() -> Double {
-        currentStagePercentage
-    }
-    
-    public override func start() {
-        Task {
-            do {
-                try await SingleFileDownloader.download(url: url, destination: destination) { progress in
-                    self.currentStagePercentage = progress
-                }
-            } catch {
-                hint("\(destination.lastPathComponent) 下载失败: \(error.localizedDescription.replacingOccurrences(of: "\n", with: ""))", .critical)
-                complete()
-                return
-            }
-            hint("\(destination.lastPathComponent) 下载完成！", .finish)
-            complete()
+    public override func startTask() async throws {
+        do {
+            try await SingleFileDownloader.download(task: self, url: url, destination: destination)
+        } catch {
+            throw InstallingError.customFileDownloadFailed(name: destination.lastPathComponent, error: error)
         }
     }
     
-    public override func getInstallStates() -> [InstallStage : InstallState] {
-        [.customFile: .inprogress]
+    override func getStages() -> [InstallStage] {
+        [.customFile]
     }
 }
 

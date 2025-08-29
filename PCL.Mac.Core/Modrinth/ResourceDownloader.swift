@@ -10,35 +10,29 @@ import SwiftyJSON
 
 public class ResourceInstallTask: InstallTask {
     @Published public var state: InstallState = .waiting
-    
     public let instance: MinecraftInstance
     private let versions: [ProjectVersion]
+    private let totalFiles: Int
     
     init(instance: MinecraftInstance, versions: [ProjectVersion]) {
         self.instance = instance
         self.versions = versions
-        super.init()
         self.totalFiles = versions.count
-        self.remainingFiles = totalFiles
+        super.init()
     }
     
-    public override func start() {
-        Task {
-            await MainActor.run {
-                self.state = .inprogress
-            }
-            
-            let downloader = MultiFileDownloader(
-                urls: versions.map { $0.downloadURL },
-                destinations: versions.map { getDestinationDirectory($0).appending(path: $0.downloadURL.lastPathComponent) }
-            ) { progress, finished in
-                self.remainingFiles = self.totalFiles - finished
-                self.currentStagePercentage = progress
-            }
-            
-            try await downloader.start()
-            complete()
+    public override func startTask() async throws {
+        setStage(.resources)
+        self.remainingFiles = totalFiles
+        let downloader = MultiFileDownloader(
+            urls: versions.map { $0.downloadURL },
+            destinations: versions.map { getDestinationDirectory($0).appending(path: $0.downloadURL.lastPathComponent) }
+        ) { progress, finished in
+            self.remainingFiles = self.totalFiles - finished
+            self.currentStageProgress = progress
         }
+        
+        try await downloader.start()
     }
     
     private func getDestinationDirectory(_ version: ProjectVersion) -> URL {
@@ -50,7 +44,10 @@ public class ResourceInstallTask: InstallTask {
         }
     }
     
-    public override func getInstallStates() -> [InstallStage : InstallState] { [.resources : state] }
+    override func getStages() -> [InstallStage] {
+        [.resources]
+    }
+    
     public override func getTitle() -> String { "资源下载" }
 }
 

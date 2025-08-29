@@ -7,39 +7,49 @@
 
 import Foundation
 
-public class NewMinecraftInstallTask: NewInstallTask {
+public class MinecraftInstallTask: InstallTask {
     public var manifest: ClientManifest?
     public var assetIndex: AssetIndex?
     public var name: String
-    public var versionURL: URL { minecraftDirectory.versionsURL.appending(path: name) }
-    public let minecraftVersion: MinecraftVersion
+    public var instanceURL: URL { minecraftDirectory.versionsURL.appending(path: name) }
+    public let version: MinecraftVersion
     public let minecraftDirectory: MinecraftDirectory
-    public let startInstall: (NewMinecraftInstallTask) async throws -> Void
+    public let startInstall: (MinecraftInstallTask) async throws -> Void
     public let architecture: Architecture
     
     public init(
-        minecraftVersion: MinecraftVersion,
+        version: MinecraftVersion,
         minecraftDirectory: MinecraftDirectory,
         name: String,
         architecture: Architecture = .system,
-        startInstall: @escaping (NewMinecraftInstallTask) async throws -> Void
+        startInstall: @escaping (MinecraftInstallTask) async throws -> Void
     ) {
-        self.minecraftVersion = minecraftVersion
+        self.version = version
         self.minecraftDirectory = minecraftDirectory
         self.name = name
         self.startInstall = startInstall
         self.architecture = architecture
     }
     
-    override func startTask() async throws {
-        try await startInstall(self)
+    public override func startTask() async throws {
+        do {
+            try await startInstall(self)
+        } catch {
+            try? FileManager.default.removeItem(at: instanceURL)
+            throw InstallingError.minecraftInstallFailed(error: error)
+            //            await PopupManager.shared.show(.init(.error, "无法安装 Minecraft", "\(error.localizedDescription)\n若要反馈此问题，你可以进入设置 > 其它 > 打开日志，将选中的文件发给别人，而不是发送本页面的照片或截图。", [.ok]))
+            //            await MainActor.run {
+            //                currentStageState = .failed
+            //                DataManager.shared.inprogressInstallTasks = nil
+            //            }
+        }
     }
     
-    public override func getStages() -> [InstallStage] {
+    override func getStages() -> [InstallStage] {
         [.clientJson, .clientIndex, .clientJar, .clientResources, .clientLibraries, .natives]
     }
     
     public override func getTitle() -> String {
-        "\(minecraftVersion.displayName) 安装"
+        "\(version.displayName) 安装"
     }
 }

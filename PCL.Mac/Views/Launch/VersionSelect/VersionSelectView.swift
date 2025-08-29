@@ -91,7 +91,14 @@ struct VersionSelectView: View, SubRouteContainer {
                                     let importer = try ModrinthModpackImporter(minecraftDirectory: settings.currentMinecraftDirectory.unwrap(), modpackURL: panel.url!)
                                     let tasks = try importer.createInstallTasks()
                                     dataManager.inprogressInstallTasks = tasks
-                                    tasks.tasks["minecraft"]!.start()
+                                    tasks.startAll { result in
+                                        switch result {
+                                        case .success(_):
+                                            hint("整合包 {placeholder} 导入成功！")
+                                        case .failure(let failure):
+                                            PopupManager.shared.show(.init(.error, "导入整合包失败", "\(failure.localizedDescription)\n若要寻求帮助，请进入设置 > 其它 > 打开日志，将选中的文件发给别人，而不是发送此页面的照片或截图。", [.ok]))
+                                        }
+                                    }
                                 } catch {
                                     err("创建导入任务失败: \(error.localizedDescription)")
                                     PopupManager.shared.show(.init(.error, "无法创建导入任务", "\(error.localizedDescription)\n若要寻求帮助，请进入设置 > 其它 > 打开日志，将选中的文件发给别人，而不是发送本页面的照片或截图。", [.ok]))
@@ -113,7 +120,7 @@ struct VersionSelectView: View, SubRouteContainer {
             return AnyView(
                 HStack {
                     VStack(alignment: .leading) {
-                        Text(directory.name)
+                        Text(directory.name ?? "")
                             .font(.custom("PCL English", size: 14))
                             .foregroundStyle(.primary)
                         Text(directory.rootURL.path)

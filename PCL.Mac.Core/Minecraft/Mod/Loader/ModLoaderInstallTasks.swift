@@ -8,30 +8,23 @@
 import Foundation
 
 // MARK: - Fabric 安装任务定义
-public class FabricInstallTask: NewInstallTask {
-    @Published private var state: InstallState
+public class FabricInstallTask: InstallTask {
+    private let instanceURL: URL
     private let loaderVersion: String
     
-    init(loaderVersion: String) {
-        self.state = .waiting
+    public init(instanceURL: URL, loaderVersion: String) {
+        self.instanceURL = instanceURL
         self.loaderVersion = loaderVersion
     }
     
-    public func install(_ task: NewMinecraftInstallTask) async {
-        await MainActor.run {
-            state = .inprogress
-        }
-        do {
-            let manifestURL = task.versionURL.appending(path: "\(task.name).json")
-            try await FabricInstaller.installFabric(version: task.minecraftVersion, minecraftDirectory: task.minecraftDirectory, runningDirectory: task.versionURL, self.loaderVersion)
-            task.manifest = try ClientManifest.parse(url: manifestURL, minecraftDirectory: task.minecraftDirectory)
-        } catch {
-            await PopupManager.shared.show(.init(.error, "无法安装 Fabric", "\(error.localizedDescription)\n若要反馈此问题，你可以进入设置 > 其它 > 打开日志，将选中的文件发给别人。", [.ok]))
-            err("无法安装 Fabric: \(error.localizedDescription)")
-        }
-        await MainActor.run {
-            state = .finished
-        }
+    public override func startTask() async throws {
+        let instance = try MinecraftInstance.create(instanceURL).unwrap("加载实例失败")
+        try await FabricInstaller.installFabric(
+            version: instance.version.unwrap(),
+            minecraftDirectory: instance.minecraftDirectory,
+            runningDirectory: instance.runningDirectory, self.loaderVersion
+        )
+        instance.loadManifest()
     }
     
     public override func getStages() -> [InstallStage] {
@@ -41,90 +34,43 @@ public class FabricInstallTask: NewInstallTask {
     public override func getTitle() -> String {
         "Fabric \(loaderVersion) 安装"
     }
+    
+    override func wrapError(error: any Error) -> any Error {
+        InstallingError.modLoaderInstallFailed(loader: .fabric, error: error)
+    }
 }
 
-public class ForgeInstallTask: NewInstallTask {
-    @Published private var state: InstallState
-    private let minecraftVersion: MinecraftVersion
-    private let forgeVersion: String
-    private let minecraftDirectory: MinecraftDirectory
+public class ForgeInstallTask: InstallTask {
     private let instanceURL: URL
-    private let manifest: ClientManifest
+    private let loaderVersion: String
+    private let isNeoforge: Bool
     
     public init(
-        minecraftVersion: MinecraftVersion,
-        forgeVersion: String,
-        minecraftDirectory: MinecraftDirectory,
         instanceURL: URL,
-        manifest: ClientManifest
+        loaderVersion: String,
+        isNeoforge: Bool = false
     ) {
-        self.state = .waiting
-        self.minecraftVersion = minecraftVersion
-        self.forgeVersion = forgeVersion
-        self.minecraftDirectory = minecraftDirectory
         self.instanceURL = instanceURL
-        self.manifest = manifest
-    }
-    
-    public convenience init(task: MinecraftInstallTask, forgeVersion: String) {
-        self.init(
-            minecraftVersion: task.minecraftVersion,
-            forgeVersion: forgeVersion,
-            minecraftDirectory: task.minecraftDirectory,
-            instanceURL: task.versionURL,
-            manifest: task.manifest!
-        )
+        self.loaderVersion = loaderVersion
+        self.isNeoforge = isNeoforge
     }
     
     public override func startTask() async throws {
-        updateStage(.installForge)
-        do {
-            let installer = ForgeInstaller(minecraftDirectory, instanceURL, manifest) { progress in
-                self.setProgress(progress)
-            }
-            try await installer.install(minecraftVersion: minecraftVersion, forgeVersion: forgeVersion)
-            log("Forge 安装完成")
-        } catch {
-            throw MyLocalizedError(reason: "无法安装 Forge：\(error.localizedDescription)")
-        }
-        complete()
+        let instance = try MinecraftInstance.create(instanceURL).unwrap("加载实例失败")
+        setStage(.installForge)
+        let constructor: (MinecraftDirectory, URL, ClientManifest, ((Double) -> Void)?) -> ForgeInstaller = isNeoforge ? ForgeInstaller.init : NeoforgeInstaller.init
+        let installer = constructor(instance.minecraftDirectory, instance.runningDirectory, instance.manifest, setProgress(_:))
+        try await installer.install(minecraftVersion: instance.version, forgeVersion: loaderVersion)
+        
     }
     
     public override func getStages() -> [InstallStage] {
-        [.installForge]
+        [isNeoforge ? .installNeoforge : .installForge]
     }
     
-    public override func getTitle() -> String { "Forge \(forgeVersion) 安装" }
-}
-
-public class NeoforgeInstallTask: InstallTask {
-    @Published private var state: InstallState
-    private let neoforgeVersion: String
+    public override func getTitle() -> String { "\(isNeoforge ? "Neo" : "")Forge \(loaderVersion) 安装" }
     
-    init(neoforgeVersion: String) {
-        self.state = .waiting
-        self.neoforgeVersion = neoforgeVersion
+    override func wrapError(error: any Error) -> any Error {
+        InstallingError.modLoaderInstallFailed(loader: isNeoforge ? .neoforge : .forge, error: error)
     }
-    
-    public func install(_ task: NewMinecraftInstallTask) async {
-        await MainActor.run {
-            state = .inprogress
-        }
-        do {
-            let installer = NeoforgeInstaller(task.minecraftDirectory, task.versionURL, task.manifest!) { progress in
-                self.currentStagePercentage = progress
-            }
-            try await installer.install(minecraftVersion: task.minecraftVersion, forgeVersion: neoforgeVersion)
-            log("NeoForge 安装完成")
-        } catch {
-            await PopupManager.shared.show(.init(.error, "无法安装 NeoForge", "\(error.localizedDescription)\n若要反馈此问题，你可以进入设置 > 其它 > 打开日志，将选中的文件发给别人。", [.ok]))
-            err("无法安装 NeoForge: \(error.localizedDescription)")
-        }
-        await MainActor.run {
-            state = .finished
-        }
-    }
-    
-    public override func getInstallStates() -> [InstallStage : InstallState] { [.installNeoforge : state] }
-    public override func getTitle() -> String { "NeoForge \(neoforgeVersion) 安装" }
 }

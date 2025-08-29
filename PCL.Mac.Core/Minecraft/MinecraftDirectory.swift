@@ -12,7 +12,7 @@ public class MinecraftDirectory: Codable, Identifiable, Hashable {
     
     public var id: UUID
     public let rootURL: URL
-    public var name: String
+    public var name: String?
     public var instances: [InstanceInfo] = []
     
     public func hash(into hasher: inout Hasher) {
@@ -31,7 +31,7 @@ public class MinecraftDirectory: Codable, Identifiable, Hashable {
         rootURL.appendingPathComponent("libraries")
     }
     
-    public init(rootURL: URL, name: String) {
+    public init(rootURL: URL, name: String?) {
         self.id = .init()
         self.rootURL = rootURL
         self.name = name
@@ -56,7 +56,7 @@ public class MinecraftDirectory: Codable, Identifiable, Hashable {
                     (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
                 }
                 for instanceDirectory in instanceDirectories {
-                    if let instance = MinecraftInstance.create(self, instanceDirectory) {
+                    if let instance = MinecraftInstance.create(instanceDirectory) {
                         let info = InstanceInfo(
                             minecraftDirectory: self,
                             icon: instance.getIconName(),

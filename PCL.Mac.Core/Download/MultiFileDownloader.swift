@@ -29,7 +29,7 @@ public struct DownloadItem {
 }
 
 public class MultiFileDownloader {
-    private let task: NewInstallTask?
+    private let task: InstallTask?
     private let items: [DownloadItem]
     private let concurrentLimit: Int
     private let replaceMethod: ReplaceMethod
@@ -39,7 +39,7 @@ public class MultiFileDownloader {
     private var finishedCount: Int = 0
     
     public convenience init(
-        task: NewInstallTask? = nil,
+        task: InstallTask? = nil,
         urls: [URL],
         destinations: [URL],
         concurrentLimit: Int = 16,
@@ -56,7 +56,7 @@ public class MultiFileDownloader {
     }
     
     public init(
-        task: NewInstallTask? = nil,
+        task: InstallTask? = nil,
         items: [DownloadItem],
         concurrentLimit: Int = 16,
         replaceMethod: ReplaceMethod = .skip,

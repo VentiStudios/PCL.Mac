@@ -18,7 +18,7 @@ public class ModrinthModpackImporter {
         self.modpackURL = modpackURL
     }
     
-    public func createInstallTasks() throws -> NewInstallTasks {
+    public func createInstallTasks() throws -> InstallTasks {
         let temp = TemperatureDirectory(name: "ModpackImport")
         do {
             // 解压整合包
@@ -43,7 +43,7 @@ public class ModrinthModpackImporter {
             } else {
                 try? FileManager.default.createDirectory(at: instanceURL, withIntermediateDirectories: true)
             }
-            let installTasks = NewInstallTasks([:])
+            let installTasks = InstallTasks.empty()
             
             // 添加 Minecraft 安装任务
             let minecraftInstallTask = MinecraftInstaller.createTask(
@@ -55,18 +55,17 @@ public class ModrinthModpackImporter {
             
             // 添加整合包依赖的 Mod 加载器安装任务
             if index.dependencies.requiresFabric {
-                try installTasks.addTask(key: "fabric", task: FabricInstallTask(loaderVersion: index.dependencies.fabricLoader.unwrap()))
+                try installTasks.addTask(key: "fabric", task: FabricInstallTask(instanceURL: instanceURL, loaderVersion: index.dependencies.fabricLoader.unwrap()))
             } else if index.dependencies.requiresQuilt {
                 throw MyLocalizedError(reason: "不受支持的加载器: Quilt")
             } else if index.dependencies.requiresForge {
-                try installTasks.addTask(key: "forge", task: ForgeInstallTask(task: minecraftInstallTask, forgeVersion: index.dependencies.forge.unwrap()))
+                try installTasks.addTask(key: "forge", task: ForgeInstallTask(instanceURL: instanceURL, loaderVersion: index.dependencies.forge.unwrap()))
             } else if index.dependencies.requiresNeoforge {
-                try installTasks.addTask(key: "neoforge", task: NeoforgeInstallTask(neoforgeVersion: index.dependencies.neoforge.unwrap()))
+                try installTasks.addTask(key: "neoforge", task: ForgeInstallTask(instanceURL: instanceURL, loaderVersion: index.dependencies.neoforge.unwrap(), isNeoforge: true))
             }
             
             let modpackInstallTask = ModpackInstallTask(instanceURL: instanceURL, index: index, temp: temp)
             installTasks.addTask(key: "modpack", task: modpackInstallTask)
-            minecraftInstallTask.addSubTask(task: modpackInstallTask)
             
             return installTasks
         } catch {
@@ -94,7 +93,7 @@ public class ModrinthModpackImporter {
     }
 }
 
-private class ModpackInstallTask: NewInstallTask {
+private class ModpackInstallTask: InstallTask {
     private let instanceURL: URL
     private let index: ModrinthModpackIndex
     private let temp: TemperatureDirectory
@@ -109,15 +108,15 @@ private class ModpackInstallTask: NewInstallTask {
     
     override func startTask() async throws {
         defer { temp.free() }
-        remainingFiles += index.files.count
-        updateStage(.modpackFilesDownload)
+        setRemainingFiles(index.files.count)
+        setStage(.modpackFilesDownload)
         try await MultiFileDownloader(
             task: self,
             urls: index.files.map { $0.downloadURL },
             destinations: index.files.map { instanceURL.appending(path: $0.path )}
         ).start()
         
-        updateStage(.applyOverrides)
+        setStage(.applyOverrides)
         let overridesURL = temp.getURL(path: "overrides")
         let files = try Util.getAllFiles(in: overridesURL)
         let step = 1.0 / Double(files.count)
@@ -127,14 +126,15 @@ private class ModpackInstallTask: NewInstallTask {
             try? FileManager.default.createDirectory(at: dest.parent(), withIntermediateDirectories: true)
             try? FileManager.default.copyItem(at: dest, to: instanceURL.appending(path: relative))
             log("\(relative) 拷贝完成")
-            await MainActor.run {
-                currentStageProgress += step
-            }
+            increaseProgress(step)
         }
-        complete()
     }
     
     override func getStages() -> [InstallStage] {
         [.modpackFilesDownload, .applyOverrides]
+    }
+    
+    override func wrapError(error: any Error) -> any Error {
+        InstallingError.modpackInstallFailed(name: index.name, error: error)
     }
 }
