@@ -36,11 +36,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
+    private func checkOldPreferences() {
+        let oldPreferencesURL = URL(fileURLWithUserPath: "~/Library/Preferences/io.github.pcl-communtiy.PCL-Mac.plist") // 原来这里的拼写一直是错的吗
+        let newPreferencesURL = URL(fileURLWithUserPath: "~/Library/Preferences/org.ceciliastudio.PCL.Mac.plist")
+        if FileManager.default.fileExists(atPath: oldPreferencesURL.path) {
+            do {
+                // 移动 Preferences
+                try FileManager.default.removeItem(at: newPreferencesURL)
+                try FileManager.default.moveItem(at: oldPreferencesURL, to: newPreferencesURL)
+                
+                // 重启 App
+                let process = Process()
+                process.executableURL = Bundle.main.bundleURL.appending(path: "Contents").appending(path: "MacOS").appending(path: "PCL.Mac")
+                try? process.run()
+                DispatchQueue.main.async {
+                    NSApplication.shared.terminate(nil)
+                }
+            } catch {
+                err("无法导入旧设置")
+            }
+        }
+    }
+    
     // MARK: 初始化 App
     func applicationWillFinishLaunching(_ notification: Notification) {
+        if !FileManager.default.fileExists(atPath: SharedConstants.shared.temperatureURL.path) {
+            try? FileManager.default.createDirectory(at: SharedConstants.shared.temperatureURL, withIntermediateDirectories: true)
+        }
         LogStore.shared.clear()
         let start = Date().timeIntervalSince1970
         log("App 已启动")
+        checkOldPreferences()
         _ = AppSettings.shared
         registerCustomFonts()
         DataManager.shared.refreshVersionManifest()
@@ -63,7 +89,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if AppSettings.shared.showPclMacPopup {
             Task {
                 if await PopupManager.shared.showAsync(
-                    .init(.normal, "欢迎使用 PCL.Mac！", "本启动器是 Plain Craft Launcher（作者：龙腾猫跃）的非官方衍生版。\n若要反馈问题，请到 QQ 群 1047463389，或直接在 GitHub 上开 Issue。", [.init(label: "永久关闭", style: .normal), .close])
+                    .init(.normal, "欢迎使用 PCL.Mac！", "本启动器是 Plain Craft Launcher（作者：龙腾猫跃）的非官方衍生版。\n若要反馈问题，请在 GitHub 上开 Issue。", [.init(label: "永久关闭", style: .normal), .close])
                 ) == 0 {
                     AppSettings.shared.showPclMacPopup = false
                 }

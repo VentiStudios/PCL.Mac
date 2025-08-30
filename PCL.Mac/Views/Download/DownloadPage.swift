@@ -125,7 +125,6 @@ struct DownloadPage: View {
                             }
                             tasks.addTask(key: loader.loader.rawValue, task: task!)
                         }
-                        
                         if let task = tasks.tasks["minecraft"] as? MinecraftInstallTask {
                             task.name = self.name
                             task.onComplete {

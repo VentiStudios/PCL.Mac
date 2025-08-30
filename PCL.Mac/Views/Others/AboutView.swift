@@ -69,7 +69,7 @@ struct AboutView: View {
                         name: "PCL.Mac",
                         description: "当前版本：\(SharedConstants.shared.version)-\(SharedConstants.shared.branch)",
                         buttonName: "查看源代码",
-                        buttonURL: "https://github.com/PCL-Community/PCL-Mac"
+                        buttonURL: "https://github.com/CeciliaStudio/PCL.Mac"
                     )
                 }
                 .padding(.leading)
@@ -104,7 +104,7 @@ struct AboutView: View {
                 VStack(spacing: 0) {
                     DependencyView(name: "SwiftyJSON", license: "MIT", repo: "SwiftyJSON/SwiftyJSON")
                     DependencyView(name: "ZIPFoundation", license: "MIT", repo: "weichsel/ZIPFoundation")
-                    DependencyView(name: "PCL.Mac.Daemon", description: "自动导出启动器崩溃报告的守护进程", license: "MIT", repo: "VentiStudios/PCL.Mac.Daemon")
+                    DependencyView(name: "PCL.Mac.Daemon", description: "自动导出启动器崩溃报告的守护进程", license: "MIT", repo: "CeciliaStudio/PCL.Mac.Daemon")
                 }
             }
             .padding()

@@ -184,7 +184,7 @@ struct LaunchView: View {
                             Text("点击此处反馈")
                                 .font(.custom("PCL English", size: 14))
                                 .onTapGesture {
-                                    NSWorkspace.shared.open(URL(string: "https://github.com/PCL-Community/PCL.Mac/issues/new?template=bug-反馈.md")!)
+                                    NSWorkspace.shared.open(URL(string: "https://github.com/CeciliaStudio/PCL.Mac/issues/new?template=bug-反馈.md")!)
                                 }
                                 .foregroundStyle(AppSettings.shared.theme.getTextStyle())
                         }

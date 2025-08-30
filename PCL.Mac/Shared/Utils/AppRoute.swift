@@ -77,7 +77,7 @@ public enum AppRoute: Hashable {
         case .versionSettings, .instanceOverview, .instanceSettings, .instanceMods: "版本设置 - \(AppSettings.shared.defaultInstance ?? "")"
         case .javaDownload: "Java 下载"
         case .themeUnlock: "主题解锁"
-        default: "发现问题请在 https://github.com/PCL-Community/PCL.Mac/issues/new 上反馈！"
+        default: "发现问题请在 https://github.com/CeciliaStudio/PCL.Mac/issues/new 上反馈！"
         }
     }
     

@@ -59,10 +59,12 @@ public class JavaDownloader {
 public class JavaInstallTask: InstallTask {
     private static let defaultJavaInstallDirectory = URL(fileURLWithUserPath: "~/Library/Java/JavaVirtualMachines")
     private let package: JavaPackage
+    @Published private var progress: Double = 0
     
     public init(package: JavaPackage) {
         self.package = package
         super.init()
+        self.remainingFiles = 1
     }
     
     public override func getTitle() -> String { "\(package.name) 安装" }

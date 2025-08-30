@@ -277,7 +277,6 @@ public class MinecraftInstaller {
             try await downloadAssetIndex(task)
             updateProgress(task)
             try await downloadClientJar(task)
-            
             modifyId(task)
             try await downloadHashResourcesFiles(task)
             try await downloadLibraries(task)
