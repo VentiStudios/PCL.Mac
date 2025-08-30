@@ -36,7 +36,7 @@ public class TemperatureDirectory {
     public func free() {
         do {
             let contents = try FileManager.default.contentsOfDirectory(
-                at: SharedConstants.shared.temperatureURL,
+                at: root,
                 includingPropertiesForKeys: nil,
                 options: []
             )

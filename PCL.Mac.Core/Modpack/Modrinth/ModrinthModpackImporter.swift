@@ -122,11 +122,14 @@ private class ModpackInstallTask: InstallTask {
         let step = 1.0 / Double(files.count)
         for url in files {
             let relative = url.pathComponents.dropFirst(overridesURL.pathComponents.count).joined(separator: "/")
-            let dest = overridesURL.appending(path: relative)
+            let dest = instanceURL.appending(path: relative)
             try? FileManager.default.createDirectory(at: dest.parent(), withIntermediateDirectories: true)
-            try? FileManager.default.copyItem(at: dest, to: instanceURL.appending(path: relative))
+            try FileManager.default.copyItem(at: url, to: dest)
             log("\(relative) 拷贝完成")
             increaseProgress(step)
+        }
+        await MainActor.run {
+            AppSettings.shared.defaultInstance = instanceURL.lastPathComponent
         }
     }
     

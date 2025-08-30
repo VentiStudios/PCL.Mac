@@ -20,15 +20,7 @@ struct ContentView: View {
                 if case .installing = dataManager.router.getLast() {
                     
                 } else {
-                    RoundedButton {
-                        Image("DownloadIcon")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 20)
-                            .foregroundStyle(.white)
-                    } onClick: {
-                        dataManager.router.append(.installing(tasks: tasks))
-                    }
+                    InstallTaskButtonOverlay(tasks: tasks)
                     .padding()
                 }
             }
