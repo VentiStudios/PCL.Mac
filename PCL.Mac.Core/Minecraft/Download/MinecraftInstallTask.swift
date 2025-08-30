@@ -36,17 +36,16 @@ public class MinecraftInstallTask: InstallTask {
             try await startInstall(self)
         } catch {
             try? FileManager.default.removeItem(at: instanceURL)
-            throw InstallingError.minecraftInstallFailed(error: error)
-            //            await PopupManager.shared.show(.init(.error, "无法安装 Minecraft", "\(error.localizedDescription)\n若要反馈此问题，你可以进入设置 > 其它 > 打开日志，将选中的文件发给别人，而不是发送本页面的照片或截图。", [.ok]))
-            //            await MainActor.run {
-            //                currentStageState = .failed
-            //                DataManager.shared.inprogressInstallTasks = nil
-            //            }
+            throw error
         }
     }
     
     override func getStages() -> [InstallStage] {
         [.clientJson, .clientIndex, .clientJar, .clientResources, .clientLibraries, .natives]
+    }
+    
+    override func wrapError(error: any Error) -> any Error {
+        InstallingError.minecraftInstallFailed(error: error)
     }
     
     public override func getTitle() -> String {

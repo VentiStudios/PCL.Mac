@@ -102,19 +102,15 @@ struct DownloadPage: View {
                                 .font(.custom("PCL English", size: 16))
                         }
                     } onClick: {
+                        // 若实例名无效则直接返回
                         guard errorMessage.isEmpty else {
                             hint(errorMessage, .critical)
                             return
                         }
                         
-                        guard NetworkTest.shared.hasNetworkConnection() else {
-                            PopupManager.shared.show(.init(.error, "无互联网连接", "请确保当前设备已联网！", [.ok]))
-                            warn("试图下载新版本，但无网络连接")
-                            return
-                        }
-                        
                         if DataManager.shared.inprogressInstallTasks != nil { return }
                         
+                        // 如果选择了加载器，添加加载器安装任务
                         if let loader {
                             let instanceURL = AppSettings.shared.currentMinecraftDirectory!.versionsURL.appending(path: name)
                             let task: InstallTask? =
@@ -125,22 +121,21 @@ struct DownloadPage: View {
                             }
                             tasks.addTask(key: loader.loader.rawValue, task: task!)
                         }
+                        
+                        // 设置 MinecraftInstallTask 的实例名
                         if let task = tasks.tasks["minecraft"] as? MinecraftInstallTask {
                             task.name = self.name
-                            task.onComplete {
-                                DispatchQueue.main.async {
-                                    HintManager.default.add(.init(text: "\(name) 下载完成！", type: .finish))
-                                    AppSettings.shared.defaultInstance = name
-                                }
-                            }
                         }
                         
+                        // 切换到安装任务页面
                         DataManager.shared.inprogressInstallTasks = self.tasks
                         DataManager.shared.router.append(.installing(tasks: tasks))
+                        // 开始安装
                         tasks.startAll { result in
                             switch result {
                             case .success(_):
-                                hint("下载完成！", .finish)
+                                hint("\(name) 安装完成！", .finish)
+                                AppSettings.shared.defaultInstance = name
                             case .failure(let failure):
                                 PopupManager.shared.show(.init(.error, "Minecraft 安装失败", "\(failure.localizedDescription)\n若要寻求帮助，请进入设置 > 其它 > 打开日志，将选中的文件发给别人，而不是发送此页面的照片或截图。", [.ok]))
                             }

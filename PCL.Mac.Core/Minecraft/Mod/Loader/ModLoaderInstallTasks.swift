@@ -58,10 +58,9 @@ public class ForgeInstallTask: InstallTask {
     public override func startTask() async throws {
         let instance = try MinecraftInstance.create(instanceURL).unwrap("加载实例失败")
         setStage(.installForge)
-        let constructor: (MinecraftDirectory, URL, ClientManifest, ((Double) -> Void)?) -> ForgeInstaller = isNeoforge ? ForgeInstaller.init : NeoforgeInstaller.init
+        let constructor: (MinecraftDirectory, URL, ClientManifest, ((Double) -> Void)?) -> ForgeInstaller = isNeoforge ? NeoforgeInstaller.init : ForgeInstaller.init
         let installer = constructor(instance.minecraftDirectory, instance.runningDirectory, instance.manifest, setProgress(_:))
         try await installer.install(minecraftVersion: instance.version, forgeVersion: loaderVersion)
-        
     }
     
     public override func getStages() -> [InstallStage] {

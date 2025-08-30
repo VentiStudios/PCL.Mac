@@ -16,7 +16,6 @@ public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
     @Published var completedStages: Int = 0
     
     public let id: UUID = UUID()
-    public var callback: (() -> Void)? = nil
     
     public static func == (lhs: InstallTask, rhs: InstallTask) -> Bool {
         lhs.id == rhs.id
@@ -41,10 +40,6 @@ public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
             setState(.failed)
             throw error
         }
-    }
-    
-    public final func onComplete(_ callback: @escaping () -> Void) {
-        self.callback = callback
     }
     
     public final func setStage(_ stage: InstallStage) {
@@ -91,9 +86,6 @@ public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
     private final func complete() {
         log("任务 \(getTitle()) 结束")
         self.setStage(.end)
-        DispatchQueue.main.async {
-            self.callback?()
-        }
     }
 }
 
@@ -122,7 +114,7 @@ public class InstallTasks: ObservableObject, Identifiable, Hashable, Equatable {
         for task in tasks.values {
             progress += Double(task.completedStages) + task.currentStageProgress
         }
-        return progress / Double(tasks.values.map { $0.getStages().count }.reduce(0, +) + 1)
+        return progress / Double(tasks.values.map { $0.getStages().count }.reduce(0, +) + tasks.count)
     }
     
     public func getTasks() -> [InstallTask] {
@@ -154,15 +146,6 @@ public class InstallTasks: ObservableObject, Identifiable, Hashable, Equatable {
 
     private func subscribeToTask(_ task: InstallTask) {
         let cancellable = task.objectWillChange.sink { [weak self] _ in
-            if task.stage == .end {
-                self?.remainingTasks -= 1
-                if self?.remainingTasks == 0 {
-                    DataManager.shared.inprogressInstallTasks = nil
-                    if case .installing(_) = DataManager.shared.router.getLast() {
-                        DataManager.shared.router.removeLast()
-                    }
-                }
-            }
             self?.objectWillChange.send()
         }
         cancellables.append(cancellable)
@@ -176,12 +159,17 @@ public class InstallTasks: ObservableObject, Identifiable, Hashable, Equatable {
                 } catch {
                     err("任务 \(task.getTitle()) 执行失败: \(error.localizedDescription)")
                     await MainActor.run {
+                        DataManager.shared.inprogressInstallTasks = nil
                         callback(.failure(error))
                     }
                     return
                 }
             }
             await MainActor.run {
+                DataManager.shared.inprogressInstallTasks = nil
+                if case .installing = DataManager.shared.router.getLast() {
+                    DataManager.shared.router.removeLast()
+                }
                 callback(.success(()))
             }
         }
