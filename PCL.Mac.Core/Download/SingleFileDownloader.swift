@@ -14,10 +14,12 @@ public class SingleFileDownloader {
         url: URL,
         destination: URL,
         replaceMethod: ReplaceMethod = .skip,
+        cacheStorage: CacheStorage? = nil,
         progress: ((Double) -> Void)? = nil
     ) async throws {
-        // 若文件已存在，且指定了在存在时跳过，直接返回
-        if FileManager.default.fileExists(atPath: destination.path) && replaceMethod == .skip {
+        // 若文件已存在，且指定了在存在时跳过，或者缓存中有该文件，直接返回
+        if FileManager.default.fileExists(atPath: destination.path) && replaceMethod == .skip
+            || cacheStorage?.copyFile(url: url, to: destination) == true {
             task?.completeOneFile()
             progress?(1)
             return
@@ -98,12 +100,15 @@ public class SingleFileDownloader {
             } else if replaceMethod == .throw {
                 throw MyLocalizedError(reason: "\(destination.lastPathComponent) 已存在。")
             }
-            
         } else {
             try? FileManager.default.createDirectory(at: destination.parent(), withIntermediateDirectories: true)
         }
         
         try FileManager.default.moveItem(at: tempURL, to: destination)
+        if let cacheStorage, let response = response as? HTTPURLResponse,
+           let eTag = response.value(forHTTPHeaderField: "ETag"), let lastModified = response.value(forHTTPHeaderField: "Last-Modified") {
+            cacheStorage.addFile(from: url, localURL: destination, eTag: eTag, lastModified: lastModified)
+        }
         
         task?.completeOneFile()
         progress?(1.0)

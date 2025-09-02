@@ -163,7 +163,7 @@ public class ForgeInstaller {
         let installerPath = temp.getURL(path: "installer.jar")
         // 如果 CacheStorage 中不存在安装器，下载
         let name = "\(getGroupId()):installer:\(minecraftVersion.displayName)-\(version)"
-        if !CacheStorage.default.copy(name: name, to: installerPath) {
+        if !CacheStorage.default.copyLibrary(name: name, to: installerPath) {
             let url = getInstallerDownloadURL(minecraftVersion, version)
             let dest = temp.getURL(path: "installer.jar")
             log("正在下载安装器 \(url.lastPathComponent)")
@@ -171,7 +171,7 @@ public class ForgeInstaller {
                 Task { @MainActor in self.setProgress(progress * 0.2) }
             }
             log("安装器下载完成")
-            CacheStorage.default.add(name: name, path: dest)
+            CacheStorage.default.addLibrary(name: name, path: dest)
         }
         await setProgress(0.2)
     }

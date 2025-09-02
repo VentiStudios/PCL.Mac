@@ -113,7 +113,8 @@ private class ModpackInstallTask: InstallTask {
         try await MultiFileDownloader(
             task: self,
             urls: index.files.map { $0.downloadURL },
-            destinations: index.files.map { instanceURL.appending(path: $0.path )}
+            destinations: index.files.map { instanceURL.appending(path: $0.path) },
+            cacheStorage: CacheStorage.default
         ).start()
         
         setStage(.applyOverrides)

@@ -99,6 +99,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         LogStore.shared.save()
+        CacheStorage.default.save()
         Task {
             NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }

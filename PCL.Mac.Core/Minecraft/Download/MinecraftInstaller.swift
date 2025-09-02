@@ -110,7 +110,7 @@ public class MinecraftInstaller {
         for library in try task.manifest.unwrap().getNeededLibraries() {
             if let artifact = library.artifact {
                 let dest = task.minecraftDirectory.librariesURL.appending(path: artifact.path)
-                if CacheStorage.default.copy(name: library.name, to: dest) {
+                if CacheStorage.default.copyLibrary(name: library.name, to: dest) {
                     continue
                 }
                 
@@ -123,7 +123,7 @@ public class MinecraftInstaller {
         
         for library in task.manifest!.getNeededLibraries() {
             if libraryNames.contains(library.name) {
-                CacheStorage.default.add(name: library.name, path: task.minecraftDirectory.librariesURL.appending(path: library.artifact!.path))
+                CacheStorage.default.addLibrary(name: library.name, path: task.minecraftDirectory.librariesURL.appending(path: library.artifact!.path))
             }
         }
     }
@@ -137,7 +137,7 @@ public class MinecraftInstaller {
         
         for (library, artifact) in try task.manifest.unwrap().getNeededNatives() {
             let dest = task.minecraftDirectory.librariesURL.appending(path: artifact.path)
-            if CacheStorage.default.copy(name: library.name, to: dest) {
+            if CacheStorage.default.copyLibrary(name: library.name, to: dest) {
                 continue
             }
             
@@ -150,7 +150,7 @@ public class MinecraftInstaller {
         
         for (library, artifact) in task.manifest!.getNeededNatives() {
             if libraryNames.contains(library.name) {
-                CacheStorage.default.add(name: library.name, path: task.minecraftDirectory.librariesURL.appending(path: artifact.path))
+                CacheStorage.default.addLibrary(name: library.name, path: task.minecraftDirectory.librariesURL.appending(path: artifact.path))
             }
         }
     }
