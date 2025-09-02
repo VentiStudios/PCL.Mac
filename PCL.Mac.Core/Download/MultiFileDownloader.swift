@@ -37,6 +37,7 @@ public class MultiFileDownloader {
     private let total: Int
     private var totalProgress: Double = 0
     private var finishedCount: Int = 0
+    private let cacheStorage: CacheStorage?
     
     public convenience init(
         task: InstallTask? = nil,
@@ -44,14 +45,16 @@ public class MultiFileDownloader {
         destinations: [URL],
         concurrentLimit: Int = 16,
         replaceMethod: ReplaceMethod = .skip,
-        progress: ((Double, Int) -> Void)? = nil
+        progress: ((Double, Int) -> Void)? = nil,
+        cacheStorage: CacheStorage? = nil
     ) {
         self.init(
             task: task,
             items: (0..<urls.count).map { .init(urls[$0], destinations[$0]) },
             concurrentLimit: concurrentLimit,
             replaceMethod: replaceMethod,
-            progress: progress
+            progress: progress,
+            cacheStorage: cacheStorage
         )
     }
     
@@ -60,7 +63,8 @@ public class MultiFileDownloader {
         items: [DownloadItem],
         concurrentLimit: Int = 16,
         replaceMethod: ReplaceMethod = .skip,
-        progress: ((Double, Int) -> Void)? = nil
+        progress: ((Double, Int) -> Void)? = nil,
+        cacheStorage: CacheStorage? = nil
     ) {
         self.task = task
         self.items = items
@@ -68,6 +72,7 @@ public class MultiFileDownloader {
         self.replaceMethod = replaceMethod
         self.progress = progress
         self.total = items.count
+        self.cacheStorage = cacheStorage
     }
     
     public func start() async throws {
@@ -87,7 +92,7 @@ public class MultiFileDownloader {
                     if Task.isCancelled { break }
                     await MainActor.run {
                         progress?(self.totalProgress / Double(self.total), self.finishedCount)
-                        task?.currentStagePercentage = self.totalProgress / Double(self.total)
+                        task?.currentStageProgress = self.totalProgress / Double(self.total)
                     }
                 }
             }
@@ -122,7 +127,7 @@ public class MultiFileDownloader {
         
         await MainActor.run {
             progress?(self.totalProgress / Double(self.total), self.finishedCount)
-            task?.currentStagePercentage = self.totalProgress / Double(self.total)
+            task?.currentStageProgress = self.totalProgress / Double(self.total)
         }
     }
     
@@ -134,7 +139,7 @@ public class MultiFileDownloader {
         var lastProgress: Double = 0
         
         do {
-            try await SingleFileDownloader.download(url: item.url, destination: item.destination, replaceMethod: replaceMethod) { progress in
+            try await SingleFileDownloader.download(url: item.url, destination: item.destination, replaceMethod: replaceMethod, cacheStorage: cacheStorage) { progress in
                 self.totalProgress += (progress - lastProgress)
                 lastProgress = progress
             }
@@ -142,7 +147,7 @@ public class MultiFileDownloader {
             guard let fallback = item.fallbackURL else {
                 throw error
             }
-            try await SingleFileDownloader.download(url: fallback, destination: item.destination, replaceMethod: .replace) { progress in
+            try await SingleFileDownloader.download(url: fallback, destination: item.destination, replaceMethod: .replace, cacheStorage: cacheStorage) { progress in
                 self.totalProgress += (progress - lastProgress)
                 lastProgress = progress
             }

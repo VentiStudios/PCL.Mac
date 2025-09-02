@@ -51,7 +51,7 @@ struct VersionSelectView: View, SubRouteContainer {
                         .padding(.leading, 12)
                         .padding(.top, 20)
                         .padding(.bottom, 4)
-                    LeftTabItem(image: Image(systemName: "plus.circle"), text: "添加已有文件夹")
+                    LeftTabItem(imageName: "PlusIcon", text: "添加已有文件夹")
                         .onTapGesture {
                             let panel = NSOpenPanel()
                             panel.allowsMultipleSelection = false
@@ -69,6 +69,42 @@ struct VersionSelectView: View, SubRouteContainer {
                                 hint("添加成功", .finish)
                             }
                         }
+                    LeftTabItem(imageName: "ImportModpackIcon", text: "导入整合包")
+                        .onTapGesture {
+                            let panel = NSOpenPanel()
+                            panel.allowsMultipleSelection = false
+                            panel.canChooseFiles = true
+                            panel.canChooseDirectories = false
+                            
+                            if panel.runModal() == .OK {
+                                if case .failure(let error) = ModrinthModpackImporter.checkModpack(panel.url!) {
+                                    switch error {
+                                    case .zipFormatError:
+                                        PopupManager.shared.show(.init(.error, "无法导入整合包", "该整合包不是一个有效的压缩包！", [.ok]))
+                                    case .unsupported:
+                                        PopupManager.shared.show(.init(.error, "无法导入整合包", "很抱歉，PCL.Mac 暂时只支持导入 Modrinth 整合包……\n你可以使用其它启动器导入，然后把实例文件夹拖入本页面的右侧。", [.ok]))
+                                    }
+                                    return
+                                }
+                                
+                                do {
+                                    let importer = try ModrinthModpackImporter(minecraftDirectory: settings.currentMinecraftDirectory.unwrap(), modpackURL: panel.url!)
+                                    let tasks = try importer.createInstallTasks()
+                                    dataManager.inprogressInstallTasks = tasks
+                                    tasks.startAll { result in
+                                        switch result {
+                                        case .success(_):
+                                            hint("整合包 {placeholder} 导入成功！")
+                                        case .failure(let failure):
+                                            PopupManager.shared.show(.init(.error, "导入整合包失败", "\(failure.localizedDescription)\n若要寻求帮助，请进入设置 > 其它 > 打开日志，将选中的文件发给别人，而不是发送此页面的照片或截图。", [.ok]))
+                                        }
+                                    }
+                                } catch {
+                                    err("创建导入任务失败: \(error.localizedDescription)")
+                                    PopupManager.shared.show(.init(.error, "无法创建导入任务", "\(error.localizedDescription)\n若要寻求帮助，请进入设置 > 其它 > 打开日志，将选中的文件发给别人，而不是发送本页面的照片或截图。", [.ok]))
+                                }
+                            }
+                        }
                     Spacer()
                 }
             }
@@ -84,7 +120,7 @@ struct VersionSelectView: View, SubRouteContainer {
             return AnyView(
                 HStack {
                     VStack(alignment: .leading) {
-                        Text(directory.name)
+                        Text(directory.name ?? "")
                             .font(.custom("PCL English", size: 14))
                             .foregroundStyle(.primary)
                         Text(directory.rootURL.path)
@@ -111,16 +147,16 @@ struct VersionSelectView: View, SubRouteContainer {
 }
 
 fileprivate struct LeftTabItem: View {
-    let image: Image
+    let imageName: String
     let text: String
     
     var body: some View {
         MyListItem {
             HStack {
-                image
+                Image(imageName)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 24)
+                    .frame(width: 22)
                     .foregroundStyle(Color("TextColor"))
                     .padding(.leading)
                     .padding(.top, 6)

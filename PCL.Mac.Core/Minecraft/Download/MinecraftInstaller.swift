@@ -35,9 +35,9 @@ public class MinecraftInstaller {
     
     // MARK: 下载客户端清单
     private static func downloadClientManifest(_ task: MinecraftInstallTask) async throws {
-        task.updateStage(.clientJson)
-        let url = try DownloadSourceManager.shared.getClientManifestURL(task.minecraftVersion).unwrap("无法获取 \(task.minecraftVersion.displayName) 的 JSON 下载 URL。")
-        let destination = task.versionURL.appending(path: "\(task.name).json")
+        task.setStage(.clientJson)
+        let url = try DownloadSourceManager.shared.getClientManifestURL(task.version).unwrap("无法获取 \(task.version.displayName) 的 JSON 下载 URL。")
+        let destination = task.instanceURL.appending(path: "\(task.name).json")
         
         try await SingleFileDownloader.download(task: task, url: url, destination: destination, replaceMethod: .replace)
         task.completeOneFile()
@@ -53,13 +53,13 @@ public class MinecraftInstaller {
     
     // MARK: 下载客户端本体
     private static func downloadClientJar(_ task: MinecraftInstallTask) async throws {
-        task.updateStage(.clientJar)
-        let url = try DownloadSourceManager.shared.getClientJARURL(task.minecraftVersion, task.manifest!).unwrap("无法获取 \(task.minecraftVersion.displayName) 的客户端下载 URL。")
+        task.setStage(.clientJar)
+        let url = try DownloadSourceManager.shared.getClientJARURL(task.version, task.manifest!).unwrap("无法获取 \(task.version.displayName) 的客户端下载 URL。")
         
         try await SingleFileDownloader.download(
             task: task,
             url: url,
-            destination: task.versionURL.appending(path: "\(task.name).jar")
+            destination: task.instanceURL.appending(path: "\(task.name).jar")
         )
     }
     
@@ -71,9 +71,9 @@ public class MinecraftInstaller {
             return
         }
         
-        task.updateStage(.clientIndex)
+        task.setStage(.clientIndex)
         
-        let url: URL = try DownloadSourceManager.shared.getAssetIndexURL(task.minecraftVersion, manifest).unwrap("无法获取 \(task.minecraftVersion.displayName) 的 assetIndex 下载 URL。")
+        let url: URL = try DownloadSourceManager.shared.getAssetIndexURL(task.version, manifest).unwrap("无法获取 \(task.version.displayName) 的 assetIndex 下载 URL。")
         let destination: URL = task.minecraftDirectory.assetsURL.appending(component: "indexes").appending(component: "\(manifest.assetIndex!.id).json")
         try await SingleFileDownloader.download(task: task, url: url, destination: destination)
         do {
@@ -86,7 +86,7 @@ public class MinecraftInstaller {
     
     // MARK: 下载散列资源文件
     private static func downloadHashResourcesFiles(_ task: MinecraftInstallTask) async throws {
-        task.updateStage(.clientResources)
+        task.setStage(.clientResources)
         let objects = task.assetIndex!.objects
         
         var urls: [URL] = []
@@ -102,7 +102,7 @@ public class MinecraftInstaller {
     
     // MARK: 下载依赖项
     private static func downloadLibraries(_ task: MinecraftInstallTask) async throws {
-        task.updateStage(.clientLibraries)
+        task.setStage(.clientLibraries)
         
         var libraryNames: [String] = []
         var items: [DownloadItem] = []
@@ -110,7 +110,7 @@ public class MinecraftInstaller {
         for library in try task.manifest.unwrap().getNeededLibraries() {
             if let artifact = library.artifact {
                 let dest = task.minecraftDirectory.librariesURL.appending(path: artifact.path)
-                if CacheStorage.default.copy(name: library.name, to: dest) {
+                if CacheStorage.default.copyLibrary(name: library.name, to: dest) {
                     continue
                 }
                 
@@ -123,21 +123,21 @@ public class MinecraftInstaller {
         
         for library in task.manifest!.getNeededLibraries() {
             if libraryNames.contains(library.name) {
-                CacheStorage.default.add(name: library.name, path: task.minecraftDirectory.librariesURL.appending(path: library.artifact!.path))
+                CacheStorage.default.addLibrary(name: library.name, path: task.minecraftDirectory.librariesURL.appending(path: library.artifact!.path))
             }
         }
     }
     
     // MARK: 下载本地库
     private static func downloadNatives(_ task: MinecraftInstallTask) async throws {
-        task.updateStage(.natives)
+        task.setStage(.natives)
         
         var libraryNames: [String] = []
         var items: [DownloadItem] = []
         
         for (library, artifact) in try task.manifest.unwrap().getNeededNatives() {
             let dest = task.minecraftDirectory.librariesURL.appending(path: artifact.path)
-            if CacheStorage.default.copy(name: library.name, to: dest) {
+            if CacheStorage.default.copyLibrary(name: library.name, to: dest) {
                 continue
             }
             
@@ -145,19 +145,19 @@ public class MinecraftInstaller {
             items.append(.init(DownloadSourceManager.shared.getDownloadSource(), { $0.getLibraryURL(library)! }, destination: dest))
         }
         
-        try? FileManager.default.createDirectory(at: task.versionURL.appending(path: "natives"), withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: task.instanceURL.appending(path: "natives"), withIntermediateDirectories: true)
         try await MultiFileDownloader(task: task, items: items).start()
         
         for (library, artifact) in task.manifest!.getNeededNatives() {
             if libraryNames.contains(library.name) {
-                CacheStorage.default.add(name: library.name, path: task.minecraftDirectory.librariesURL.appending(path: artifact.path))
+                CacheStorage.default.addLibrary(name: library.name, path: task.minecraftDirectory.librariesURL.appending(path: artifact.path))
             }
         }
     }
     
     // MARK: 解压本地库
     private static func unzipNatives(_ task: MinecraftInstallTask) throws {
-        let nativesURL: URL = task.versionURL.appending(path: "natives")
+        let nativesURL: URL = task.instanceURL.appending(path: "natives")
         for (_, native) in task.manifest!.getNeededNatives() {
             let jarURL: URL = task.minecraftDirectory.librariesURL.appending(path: native.path)
             Util.unzip(archiveURL: jarURL, destination: nativesURL, replace: true)
@@ -214,14 +214,14 @@ public class MinecraftInstaller {
     private static func finalWork(_ task: MinecraftInstallTask) {
         let _1_12_2 = MinecraftVersion(displayName: "1.12.2")
         // 拷贝 log4j2.xml
-        let targetURL: URL = task.versionURL.appending(path: "log4j2.xml")
+        let targetURL: URL = task.instanceURL.appending(path: "log4j2.xml")
         try? FileManager.default.copyItem(
-            at: SharedConstants.shared.applicationResourcesURL.appending(path: task.minecraftVersion >= _1_12_2 ? "log4j2.xml" : "log4j2-1.12-.xml"),
+            at: SharedConstants.shared.applicationResourcesURL.appending(path: task.version >= _1_12_2 ? "log4j2.xml" : "log4j2-1.12-.xml"),
             to: targetURL
         )
         
         // 初始化实例
-        let instance = MinecraftInstance.create(.init(rootURL: task.versionURL.parent().parent(), name: ""), task.versionURL, config: MinecraftConfig(version: task.minecraftVersion))
+        let instance = MinecraftInstance.create(task.instanceURL, config: MinecraftConfig(version: task.version))
         
         instance?.saveConfig()
         
@@ -245,14 +245,14 @@ public class MinecraftInstaller {
     // MARK: 修改客户端清单中的 id
     private static func modifyId(_ task: MinecraftInstallTask) {
         do {
-            let manifestURL = task.versionURL.appending(path: "\(task.versionURL.lastPathComponent).json")
+            let manifestURL = task.instanceURL.appending(path: "\(task.instanceURL.lastPathComponent).json")
             guard FileManager.default.fileExists(atPath: manifestURL.path),
                   let data = try FileHandle(forReadingFrom: manifestURL).readToEnd(),
                   var dict = try JSON(data: data).dictionaryObject else {
                 return
             }
             
-            dict["id"] = task.versionURL.lastPathComponent
+            dict["id"] = task.instanceURL.lastPathComponent
             
             try JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted).write(to: manifestURL)
             log("已修改客户端清单中的 id")
@@ -264,29 +264,19 @@ public class MinecraftInstaller {
     // MARK: 获取进度
     public static func updateProgress(_ task: MinecraftInstallTask) {
         DispatchQueue.main.async {
-            task.totalFiles = 3 + task.assetIndex!.objects.count + task.manifest!.getNeededLibraries().count + task.manifest!.getNeededNatives().count
-            log("总文件数: \(task.totalFiles)")
-            task.remainingFiles = task.totalFiles - 2
+            let totalFiles = 3 + task.assetIndex!.objects.count + task.manifest!.getNeededLibraries().count + task.manifest!.getNeededNatives().count
+            log("总文件数: \(totalFiles)")
+            task.remainingFiles = totalFiles - 2
         }
     }
     
     // MARK: 创建任务
     public static func createTask(_ minecraftVersion: MinecraftVersion, _ name: String, _ minecraftDirectory: MinecraftDirectory, _ callback: (() -> Void)? = nil) -> InstallTask {
-        let task = MinecraftInstallTask(minecraftVersion: minecraftVersion, minecraftDirectory: minecraftDirectory, name: name) { task in
+        let task = MinecraftInstallTask(version: minecraftVersion, minecraftDirectory: minecraftDirectory, name: name) { task in
             try await downloadClientManifest(task)
             try await downloadAssetIndex(task)
             updateProgress(task)
             try await downloadClientJar(task)
-            
-            // 安装 Mod Loader
-            if let fabricTask = DataManager.shared.inprogressInstallTasks?.tasks["fabric"] as? FabricInstallTask {
-                await fabricTask.install(task)
-            } else if let forgeTask = DataManager.shared.inprogressInstallTasks?.tasks["forge"] as? ForgeInstallTask {
-                await forgeTask.install(task)
-            } else if let neoforgeTask = DataManager.shared.inprogressInstallTasks?.tasks["neoforge"] as? NeoforgeInstallTask {
-                await neoforgeTask.install(task)
-            }
-            
             modifyId(task)
             try await downloadHashResourcesFiles(task)
             try await downloadLibraries(task)
@@ -299,12 +289,12 @@ public class MinecraftInstaller {
     }
     
     // MARK: 创建补全资源任务
-    public static func createCompleteTask(_ instance: MinecraftInstance, _ callback: (() -> Void)? = nil) -> InstallTask {
+    public static func createCompleteTask(_ instance: MinecraftInstance) -> InstallTask {
         let arch: Architecture
         if Architecture.system == .x64 { arch = .x64 }
         else { arch = instance.isUsingRosetta ? .x64 : .arm64 }
         let task = MinecraftInstallTask(
-            minecraftVersion: instance.version!,
+            version: instance.version!,
             minecraftDirectory: instance.minecraftDirectory,
             name: instance.name,
             architecture: arch
@@ -317,8 +307,6 @@ public class MinecraftInstaller {
             try await downloadNatives(task)
             try unzipNatives(task)
             finalWork(task)
-            task.complete()
-            callback?()
         }
         return task
     }

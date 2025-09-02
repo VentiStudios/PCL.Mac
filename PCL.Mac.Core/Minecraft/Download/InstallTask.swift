@@ -11,11 +11,11 @@ import Combine
 public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
     @Published public var stage: InstallStage = .before
     @Published public var remainingFiles: Int = -1
-    @Published public var totalFiles: Int = -1
-    @Published public var currentStagePercentage: Double = 0
+    @Published public var currentStageProgress: Double = 0
+    @Published var currentStageState: InstallState = .inprogress
+    @Published var completedStages: Int = 0
     
     public let id: UUID = UUID()
-    public var callback: (() -> Void)? = nil
     
     public static func == (lhs: InstallTask, rhs: InstallTask) -> Bool {
         lhs.id == rhs.id
@@ -25,46 +25,73 @@ public class InstallTask: ObservableObject, Identifiable, Hashable, Equatable {
         hasher.combine(id)
     }
     
-    public func start() { }
-    public func getInstallStates() -> [InstallStage : InstallState] { [:] }
+    /// 任务开始函数
+    /// 不应在其中调用 complete()
+    public func startTask() async throws { }
     public func getTitle() -> String { "" }
-    public func onComplete(_ callback: @escaping () -> Void) {
-        self.callback = callback
+    func getStages() -> [InstallStage] { [] }
+    func wrapError(error: Error) -> Error { error }
+    
+    public final func start() async throws {
+        defer { complete() }
+        do {
+            try await startTask()
+        } catch {
+            setState(.failed)
+            throw error
+        }
     }
     
-    public func updateStage(_ stage: InstallStage) {
+    public final func setStage(_ stage: InstallStage) {
         debug("切换阶段: \(stage.getDisplayName())")
         DispatchQueue.main.async {
             self.stage = stage
-            self.currentStagePercentage = 0
+            self.currentStageProgress = 0
+            self.completedStages += 1
         }
     }
     
-    public func getProgress() -> Double {
-        Double(totalFiles - remainingFiles) / Double(totalFiles)
-    }
-    
-    public func complete() {
-        log("下载任务结束")
-        self.updateStage(.end)
-        DispatchQueue.main.async {
-            DataManager.shared.inprogressInstallTasks = nil
-            if case .installing(_) = DataManager.shared.router.getLast() {
-                DataManager.shared.router.removeLast()
+    public final func getInstallStates() -> [InstallStage : InstallState] {
+        let allStages: [InstallStage] = [.before] + getStages()
+        var result: [InstallStage: InstallState] = [:]
+        var foundCurrent = false
+        for stage in allStages {
+            if foundCurrent {
+                result[stage] = .waiting
+            } else if self.stage == stage {
+                result[stage] = currentStageState
+                foundCurrent = true
+            } else {
+                result[stage] = .finished
             }
-            self.callback?()
         }
+        result.removeValue(forKey: .before)
+        return result
     }
     
-    public func completeOneFile() {
+    public final func completeOneFile() {
         DispatchQueue.main.async {
             self.remainingFiles -= 1
         }
+    }
+    
+    final func setState(_ newState: InstallState) { DispatchQueue.main.async { self.currentStageState = newState } }
+    
+    final func setRemainingFiles(_ value: Int) { DispatchQueue.main.async { self.remainingFiles = value } }
+    
+    final func setProgress(_ value: Double) { DispatchQueue.main.async { self.currentStageProgress = value} }
+    
+    final func increaseProgress(_ value: Double) { setProgress(currentStageProgress + value) }
+    
+    private final func complete() {
+        log("任务 \(getTitle()) 结束")
+        self.setStage(.end)
     }
 }
 
 public class InstallTasks: ObservableObject, Identifiable, Hashable, Equatable {
     @Published public var tasks: [String : InstallTask]
+    private var remainingTasks: Int
     
     public let id: UUID = .init()
     public static func == (lhs: InstallTasks, rhs: InstallTasks) -> Bool {
@@ -75,12 +102,6 @@ public class InstallTasks: ObservableObject, Identifiable, Hashable, Equatable {
         hasher.combine(tasks)
     }
     
-    public var totalFiles: Int {
-        var totalFiles = 0
-        tasks.values.forEach { totalFiles += $0.totalFiles }
-        return totalFiles
-    }
-    
     public var remainingFiles: Int {
         var remainingFiles = 0
         tasks.values.forEach { remainingFiles += $0.remainingFiles }
@@ -89,24 +110,27 @@ public class InstallTasks: ObservableObject, Identifiable, Hashable, Equatable {
     
     public func getProgress() -> Double {
         var progress: Double = 0
+        
         for task in tasks.values {
-            progress += task.getProgress()
+            progress += Double(task.completedStages) + task.currentStageProgress
         }
-        return progress / Double(tasks.count)
+        return progress / Double(tasks.values.map { $0.getStages().count }.reduce(0, +) + tasks.count)
     }
     
     public func getTasks() -> [InstallTask] {
-        let order = ["minecraft", "fabric", "forge", "neoforge", "customFile"]
+        let order = ["minecraft", "fabric", "forge", "neoforge", "customFile", "modpack"]
         return order.compactMap { tasks[$0] }
     }
     
     public func addTask(key: String, task: InstallTask) {
         tasks[key] = task
+        self.remainingTasks += 1
         subscribeToTask(task)
     }
     
     init(_ tasks: [String : InstallTask]) {
         self.tasks = tasks
+        self.remainingTasks = tasks.count
         subscribeToTasks()
     }
     
@@ -127,166 +151,33 @@ public class InstallTasks: ObservableObject, Identifiable, Hashable, Equatable {
         cancellables.append(cancellable)
     }
     
+    public func startAll(callback: @escaping (Result<Void, Error>) -> Void) {
+        Task {
+            for task in getTasks() {
+                do {
+                    try await task.start()
+                } catch {
+                    err("任务 \(task.getTitle()) 执行失败: \(error.localizedDescription)")
+                    await MainActor.run {
+                        DataManager.shared.inprogressInstallTasks = nil
+                        callback(.failure(error))
+                    }
+                    return
+                }
+            }
+            await MainActor.run {
+                DataManager.shared.inprogressInstallTasks = nil
+                if case .installing = DataManager.shared.router.getLast() {
+                    DataManager.shared.router.removeLast()
+                }
+                callback(.success(()))
+            }
+        }
+    }
+    
     public static func single(_ task: InstallTask, key: String = "minecraft") -> InstallTasks { .init([key : task]) }
     
     public static func empty() -> InstallTasks { .init([:]) }
-}
-
-// MARK: - Minecraft 安装任务定义
-public class MinecraftInstallTask: InstallTask {
-    public var manifest: ClientManifest?
-    public var assetIndex: AssetIndex?
-    public var name: String
-    public var versionURL: URL { minecraftDirectory.versionsURL.appending(path: name) }
-    public let minecraftVersion: MinecraftVersion
-    public let minecraftDirectory: MinecraftDirectory
-    public let startTask: (MinecraftInstallTask) async throws -> Void
-    public let architecture: Architecture
-    @Published private var currentState: InstallState = .inprogress
-    
-    public init(minecraftVersion: MinecraftVersion, minecraftDirectory: MinecraftDirectory, name: String, architecture: Architecture = .system, startTask: @escaping (MinecraftInstallTask) async throws -> Void) {
-        self.minecraftVersion = minecraftVersion
-        self.minecraftDirectory = minecraftDirectory
-        self.name = name
-        self.startTask = startTask
-        self.architecture = architecture
-    }
-    
-    public override func start() {
-        Task {
-            do {
-                try await startTask(self)
-                complete()
-            } catch {
-                await PopupManager.shared.show(.init(.error, "无法安装 Minecraft", "\(error.localizedDescription)\n若要反馈此问题，你可以进入设置 > 其它 > 打开日志，将选中的文件发给别人。", [.ok]))
-                err("无法安装 Minecraft: \(error.localizedDescription)")
-                await MainActor.run {
-                    currentState = .failed
-                    DataManager.shared.inprogressInstallTasks = nil
-                    try? FileManager.default.removeItem(at: versionURL)
-                }
-            }
-        }
-    }
-    
-    public override func getInstallStates() -> [InstallStage : InstallState] {
-        let allStages: [InstallStage] = [.clientJson, .clientIndex, .clientJar, .clientResources, .clientLibraries, .natives]
-        var result: [InstallStage: InstallState] = [:]
-        var foundCurrent = false
-        for stage in allStages {
-            if foundCurrent {
-                result[stage] = .waiting
-            } else if self.stage == stage {
-                result[stage] = currentState
-                foundCurrent = true
-            } else {
-                result[stage] = .finished
-            }
-        }
-        return result
-    }
-    
-    public override func getTitle() -> String {
-        "\(minecraftVersion.displayName) 安装"
-    }
-}
-
-// MARK: - Fabric 安装任务定义
-public class FabricInstallTask: InstallTask {
-    @Published private var state: InstallState
-    private let loaderVersion: String
-    
-    init(loaderVersion: String) {
-        self.state = .waiting
-        self.loaderVersion = loaderVersion
-    }
-    
-    public func install(_ task: MinecraftInstallTask) async {
-        await MainActor.run {
-            state = .inprogress
-        }
-        do {
-            let manifestURL = task.versionURL.appending(path: "\(task.name).json")
-            try await FabricInstaller.installFabric(version: task.minecraftVersion, minecraftDirectory: task.minecraftDirectory, runningDirectory: task.versionURL, self.loaderVersion)
-            task.manifest = try ClientManifest.parse(url: manifestURL, minecraftDirectory: task.minecraftDirectory)
-        } catch {
-            await PopupManager.shared.show(.init(.error, "无法安装 Fabric", "\(error.localizedDescription)\n若要反馈此问题，你可以进入设置 > 其它 > 打开日志，将选中的文件发给别人。", [.ok]))
-            err("无法安装 Fabric: \(error.localizedDescription)")
-        }
-        await MainActor.run {
-            state = .finished
-        }
-    }
-    
-    public override func getInstallStates() -> [InstallStage : InstallState] { [.installFabric : state] }
-    
-    public override func getTitle() -> String {
-        "Fabric \(loaderVersion) 安装"
-    }
-}
-
-public class ForgeInstallTask: InstallTask {
-    @Published private var state: InstallState
-    private let forgeVersion: String
-    
-    init(forgeVersion: String) {
-        self.state = .waiting
-        self.forgeVersion = forgeVersion
-    }
-    
-    public func install(_ task: MinecraftInstallTask) async {
-        await MainActor.run {
-            state = .inprogress
-        }
-        do {
-            let installer = ForgeInstaller(task.minecraftDirectory, task.versionURL, task.manifest!) { progress in
-                self.currentStagePercentage = progress
-            }
-            try await installer.install(minecraftVersion: task.minecraftVersion, forgeVersion: forgeVersion)
-            log("Forge 安装完成")
-        } catch {
-            await PopupManager.shared.show(.init(.error, "无法安装 Forge", "\(error.localizedDescription)\n若要反馈此问题，你可以进入设置 > 其它 > 打开日志，将选中的文件发给别人。", [.ok]))
-            err("无法安装 Forge: \(error.localizedDescription)")
-        }
-        await MainActor.run {
-            state = .finished
-        }
-    }
-    
-    public override func getInstallStates() -> [InstallStage : InstallState] { [.installForge : state] }
-    public override func getTitle() -> String { "Forge \(forgeVersion) 安装" }
-}
-
-public class NeoforgeInstallTask: InstallTask {
-    @Published private var state: InstallState
-    private let neoforgeVersion: String
-    
-    init(neoforgeVersion: String) {
-        self.state = .waiting
-        self.neoforgeVersion = neoforgeVersion
-    }
-    
-    public func install(_ task: MinecraftInstallTask) async {
-        await MainActor.run {
-            state = .inprogress
-        }
-        do {
-            let installer = NeoforgeInstaller(task.minecraftDirectory, task.versionURL, task.manifest!) { progress in
-                self.currentStagePercentage = progress
-            }
-            try await installer.install(minecraftVersion: task.minecraftVersion, forgeVersion: neoforgeVersion)
-            log("NeoForge 安装完成")
-        } catch {
-            await PopupManager.shared.show(.init(.error, "无法安装 NeoForge", "\(error.localizedDescription)\n若要反馈此问题，你可以进入设置 > 其它 > 打开日志，将选中的文件发给别人。", [.ok]))
-            err("无法安装 NeoForge: \(error.localizedDescription)")
-        }
-        await MainActor.run {
-            state = .finished
-        }
-    }
-    
-    public override func getInstallStates() -> [InstallStage : InstallState] { [.installNeoforge : state] }
-    public override func getTitle() -> String { "NeoForge \(neoforgeVersion) 安装" }
 }
 
 public class CustomFileDownloadTask: InstallTask {
@@ -298,7 +189,6 @@ public class CustomFileDownloadTask: InstallTask {
         self.url = url
         self.destination = destination
         super.init()
-        self.totalFiles = 1
         self.remainingFiles = 1
     }
     
@@ -306,33 +196,22 @@ public class CustomFileDownloadTask: InstallTask {
         "自定义下载：\(destination.lastPathComponent)"
     }
     
-    public override func getProgress() -> Double {
-        currentStagePercentage
-    }
-    
-    public override func start() {
-        Task {
-            do {
-                try await SingleFileDownloader.download(url: url, destination: destination) { progress in
-                    self.currentStagePercentage = progress
-                }
-            } catch {
-                hint("\(destination.lastPathComponent) 下载失败: \(error.localizedDescription.replacingOccurrences(of: "\n", with: ""))", .critical)
-                complete()
-                return
-            }
-            hint("\(destination.lastPathComponent) 下载完成！", .finish)
-            complete()
+    public override func startTask() async throws {
+        do {
+            try await SingleFileDownloader.download(task: self, url: url, destination: destination)
+        } catch {
+            throw InstallingError.customFileDownloadFailed(name: destination.lastPathComponent, error: error)
         }
     }
     
-    public override func getInstallStates() -> [InstallStage : InstallState] {
-        [.customFile: .inprogress]
+    override func getStages() -> [InstallStage] {
+        [.customFile]
     }
 }
 
 // MARK: - 安装进度定义
 public enum InstallStage: Int {
+    // Minecraft 安装
     case before = 0
     case clientJson = 1
     case clientIndex = 2
@@ -342,14 +221,22 @@ public enum InstallStage: Int {
     case natives = 6
     case end = 7
     
+    // Mod 加载器安装
     case installFabric = 1000
     case installForge = 1001
     case installNeoforge = 1002
     
+    // 自定义文件下载
     case customFile = 2000
     
+    // Modrinth 资源下载
     case resources = 3000
     
+    // 整合包安装
+    case modpackFilesDownload = 3050
+    case applyOverrides = 3051
+    
+    // Java 安装
     case javaDownload = 4000
     case javaInstall = 4001
     
@@ -367,6 +254,8 @@ public enum InstallStage: Int {
         case .natives: "下载本地库文件"
         case .customFile: "下载自定义文件"
         case .resources: "下载资源"
+        case .modpackFilesDownload: "下载整合包文件"
+        case .applyOverrides: "应用整合包更改"
         case .end: "结束"
         case .javaDownload: "下载 Java"
         case .javaInstall: "安装 Java"

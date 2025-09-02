@@ -377,13 +377,17 @@ struct ProjectQueueOverlay: View {
                                 return
                             }
                             let versions = state.pendingDownloadProjects
-                            let task = ResourceInstallTask(instance: instance, versions: versions)
-                            task.onComplete {
-                                hint("下载完成！", .finish)
-                                state.pendingDownloadProjects.removeAll()
+                            let tasks: InstallTasks = .single(ResourceInstallTask(instance: instance, versions: versions))
+                            DataManager.shared.inprogressInstallTasks = tasks
+                            tasks.startAll { result in
+                                switch result {
+                                case .success(_):
+                                    hint("下载完成！", .finish)
+                                case .failure(let failure):
+                                    PopupManager.shared.show(.init(.error, "资源下载失败", "\(failure.localizedDescription)\n若要寻求帮助，请进入设置 > 其它 > 打开日志，将选中的文件发给别人，而不是发送此页面的照片或截图。", [.ok]))
+                                }
                             }
-                            DataManager.shared.inprogressInstallTasks = .single(task)
-                            task.start()
+                            state.pendingDownloadProjects.removeAll()
                             if let id = state.projectQueueOverlayId {
                                 OverlayManager.shared.removeOverlay(with: id)
                                 state.projectQueueOverlayId = nil

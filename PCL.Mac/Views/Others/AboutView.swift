@@ -69,7 +69,7 @@ struct AboutView: View {
                         name: "PCL.Mac",
                         description: "当前版本：\(SharedConstants.shared.version)-\(SharedConstants.shared.branch)",
                         buttonName: "查看源代码",
-                        buttonURL: "https://github.com/CeciliaStudio/PCL-Mac"
+                        buttonURL: "https://github.com/CeciliaStudio/PCL.Mac"
                     )
                 }
                 .padding(.leading)

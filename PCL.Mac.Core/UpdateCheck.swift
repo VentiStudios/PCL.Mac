@@ -73,7 +73,6 @@ public class UpdateCheck {
         let appURL = Bundle.main.bundleURL
         Util.unzip(archiveURL: zipURL, destination: appURL.parent(), replace: true)
         Util.unzip(archiveURL: appURL.parent().appending(path: "PCL.Mac.zip"), destination: appURL.parent(), replace: true)
-        Util.clearTemp()
         let executableURL = appURL.appending(path: "Contents").appending(path: "MacOS").appending(path: "PCL.Mac")
         let process = Process()
         process.executableURL = executableURL

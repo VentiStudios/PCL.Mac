@@ -20,7 +20,7 @@ public struct SharedConstants {
     public let dateFormatter = DateFormatter()
     
     public let isDevelopment: Bool
-    public let version = "Beta 0.1.1"
+    public let version = "Beta 0.1.2"
     public let branch: String
     
     private init() {

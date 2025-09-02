@@ -64,69 +64,44 @@ public class JavaInstallTask: InstallTask {
     public init(package: JavaPackage) {
         self.package = package
         super.init()
-        self.totalFiles = 1
         self.remainingFiles = 1
     }
     
     public override func getTitle() -> String { "\(package.name) 安装" }
     
-    public override func getProgress() -> Double { progress }
-    
-    public override func start() {
+    public override func startTask() async throws {
         let temp = TemperatureDirectory(name: "JavaDownload")
-        Task {
-            do {
-                updateStage(.javaDownload)
-                let zipDestination = temp.root.appending(path: "\(package.name).zip")
-                try await SingleFileDownloader.download(url: package.downloadURL, destination: zipDestination) { progress in
-                    self.progress = progress / 2
-                    self.currentStagePercentage = progress
-                }
-                completeOneFile()
-                updateStage(.javaInstall)
-                
-                Util.unzip(archiveURL: zipDestination, destination: temp.root, replace: false)
-                self.progress = 0.75
-                
-                
-                let javaDirectoryPath = temp.root.appending(path: package.name).appending(path: "zulu-\(package.version[0]).\(package.type.rawValue)")
-                if !FileManager.default.fileExists(atPath: javaDirectoryPath.path) {
-                    throw MyLocalizedError(reason: "发生未知错误")
-                }
-                
-                let saveURL = JavaInstallTask.defaultJavaInstallDirectory.appending(path: javaDirectoryPath.lastPathComponent)
-                
-                try? FileManager.default.createDirectory(
-                    at: saveURL.parent(),
-                    withIntermediateDirectories: true
-                )
-                try? FileManager.default.copyItem(at: javaDirectoryPath, to: saveURL)
-                self.progress = 1
-                temp.free()
-                hint("Java \(package.versionString) 安装完成！", .finish)
-                complete()
-            } catch {
-                hint("无法安装 Java：\(error.localizedDescription)")
-                complete()
-            }
+        defer { temp.free() }
+        setStage(.javaDownload)
+        remainingFiles = 1
+        let zipDestination = temp.root.appending(path: "\(package.name).zip")
+        try await SingleFileDownloader.download(url: package.downloadURL, destination: zipDestination) { progress in
+            self.setProgress(progress / 2)
         }
+        completeOneFile()
+        setStage(.javaInstall)
+        
+        Util.unzip(archiveURL: zipDestination, destination: temp.root, replace: false)
+        setProgress(0.75)
+        
+        
+        let javaDirectoryPath = temp.root.appending(path: package.name).appending(path: "zulu-\(package.version[0]).\(package.type.rawValue)")
+        if !FileManager.default.fileExists(atPath: javaDirectoryPath.path) {
+            throw MyLocalizedError(reason: "发生未知错误")
+        }
+        
+        let saveURL = JavaInstallTask.defaultJavaInstallDirectory.appending(path: javaDirectoryPath.lastPathComponent)
+        
+        try? FileManager.default.createDirectory(
+            at: saveURL.parent(),
+            withIntermediateDirectories: true
+        )
+        try? FileManager.default.copyItem(at: javaDirectoryPath, to: saveURL)
+        setProgress(1)
     }
     
-    public override func getInstallStates() -> [InstallStage : InstallState] {
-        let allStages: [InstallStage] = [.javaDownload, .javaInstall]
-        var result: [InstallStage: InstallState] = [:]
-        var foundCurrent = false
-        for stage in allStages {
-            if foundCurrent {
-                result[stage] = .waiting
-            } else if self.stage == stage {
-                result[stage] = .inprogress
-                foundCurrent = true
-            } else {
-                result[stage] = .finished
-            }
-        }
-        return result
+    override func getStages() -> [InstallStage] {
+        [.javaDownload, .javaInstall]
     }
 }
 

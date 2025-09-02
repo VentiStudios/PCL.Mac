@@ -91,7 +91,7 @@ fileprivate struct LeftTab: View {
         .onAppear {
             if let directory = AppSettings.shared.currentMinecraftDirectory,
                let defaultInstance = AppSettings.shared.defaultInstance,
-               let instance = MinecraftInstance.create(directory, directory.versionsURL.appending(path: defaultInstance)) {
+               let instance = MinecraftInstance.create(directory.versionsURL.appending(path: defaultInstance)) {
                 self.instance = instance
             }
         }
